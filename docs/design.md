@@ -18,8 +18,8 @@
 ### 6. 퀘스트정보 (QuestInfo)
 ![퀘스트](./images/06_questinfo.png)
 
-### 7. 진행중인 퀘스트 (QuestPlaying)
-![퀘스트](./images/07_questplaying.png)
+### 7. 진행중인 퀘스트 (QuestPlaying) - 4번과 동일
+![홈](./images/04_home_quest.png)
 
 ### 8. 상점 (Shop)
 ![상점](./images/08_shop.png)
