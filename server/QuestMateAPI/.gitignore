@@ -1,0 +1,60 @@
+# =====================
+# Build results
+# =====================
+[Bb]in/
+[Oo]bj/
+
+# =====================
+# Visual Studio files
+# =====================
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# =====================
+# Rider / VS Code
+# =====================
+.idea/
+.vscode/
+
+# =====================
+# Logs
+# =====================
+*.log
+
+# =====================
+# OS files
+# =====================
+.DS_Store
+Thumbs.db
+
+# =====================
+# ASP.NET Core
+# =====================
+appsettings.Development.json
+appsettings.Production.json
+
+# =====================
+# Secrets
+# =====================
+secrets.json
+*.pfx
+
+# =====================
+# Test results
+# =====================
+TestResults/
+
+# =====================
+# NuGet
+# =====================
+*.nupkg
+.nuget/
+packages/
+
+# =====================
+# Publish
+# =====================
+publish/
