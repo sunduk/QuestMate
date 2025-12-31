@@ -81,5 +81,39 @@ namespace QuestMateAPI.Controllers
 
             return Ok(result);
         }
+
+        [HttpPost("join")]
+        [Authorize]
+        public async Task<IActionResult> Join([FromBody] QuestJoinRequestDto dto)
+        {
+            // 1. 내 ID 파싱
+            var userIdStr = User.FindFirst("uid")?.Value;
+            if (!long.TryParse(userIdStr, out long userId)) return Unauthorized();
+
+            // 2. 서비스 호출
+            var result = await _questService.JoinQuestAsync(dto.QuestId, userId);
+
+            if (!result.Success)
+            {
+                // 에러 코드에 따라 상태코드 분기 (선택사항)
+                if (result.Error == "QUEST_FULL") return Conflict(result);
+                if (result.Error == "ALREADY_JOINED") return Conflict(result);
+
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
+        [HttpPost("leave")]
+        [Authorize]
+        public async Task<IActionResult> Leave([FromBody] QuestJoinRequestDto dto)
+        {
+            var userId = long.Parse(User.FindFirst("uid")?.Value ?? "0");
+            var result = await _questService.LeaveQuestAsync(dto.QuestId, userId);
+
+            if (!result.Success) return BadRequest(result);
+            return Ok(result);
+        }
     }
 }

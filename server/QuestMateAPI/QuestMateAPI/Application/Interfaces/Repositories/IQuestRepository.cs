@@ -6,7 +6,8 @@ namespace QuestMateAPI.Application.Interfaces.Repositories
     {
         Task<long?> CreateQuestAsync(long hostUserId, CreateQuestRequestDto dto);
         Task<IEnumerable<QuestItemDto>> GetActiveQuestsAsync();
-        // 상세 조회 (요청한 유저 ID도 같이 받음 -> 참가 여부 확인용)
         Task<QuestDetailDto?> GetQuestDetailAsync(long questId, long requestUserId);
+        Task<string> JoinQuestAsync(long questId, long userId); // 리턴값은 에러 메시지 (null이면 성공)
+        Task<string> LeaveQuestAsync(long questId, long userId);
     }
 }

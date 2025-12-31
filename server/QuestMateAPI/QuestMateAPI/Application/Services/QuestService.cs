@@ -115,5 +115,42 @@ namespace QuestMateAPI.Application.Services
                 };
             }
         }
+
+        public async Task<QuestDetailResultDto> JoinQuestAsync(long questId, long userId)
+        {
+            // 1. 입장 처리 (트랜잭션)
+            string error = await _repository.JoinQuestAsync(questId, userId);
+
+            if (error != null)
+            {
+                return new QuestDetailResultDto
+                {
+                    Success = false,
+                    Error = error
+                };
+            }
+
+            // 2. 성공 시, 최신 상세 정보 조회해서 반환 (재활용)
+            // 클라는 이 정보를 받아 UI를 바로 갱신합니다.
+            return await GetQuestDetailAsync(questId, userId);
+        }
+
+        public async Task<QuestDetailResultDto> LeaveQuestAsync(long questId, long userId)
+        {
+            string error = await _repository.LeaveQuestAsync(questId, userId);
+            if (error != null)
+            {
+                return new QuestDetailResultDto { Success = false, Error = error };
+            }
+
+            // 2. [변경] 성공 시, 상세 정보를 조회하지 않고 빈 성공 응답만 보냄
+            // 클라이언트는 어차피 목록으로 씬 전환(Redirect)하므로 데이터가 필요 없음.
+            // 또한, 방이 삭제된 경우 조회하면 에러가 나므로 이게 안전함.
+            return new QuestDetailResultDto
+            {
+                Success = true,
+                Data = null // 데이터 없음 (클라도 안 씀)
+            };
+        }
     }
 }

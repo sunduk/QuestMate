@@ -12,5 +12,9 @@ namespace QuestMateAPI.Application.DTOs.Quest
 
         // 퀘스트 상세 조회
         Task<QuestDetailResultDto> GetQuestDetailAsync(long questId, long userId);
+
+        // 퀘스트 참가
+        Task<QuestDetailResultDto> JoinQuestAsync(long questId, long userId);
+        Task<QuestDetailResultDto> LeaveQuestAsync(long questId, long userId);
     }
 }

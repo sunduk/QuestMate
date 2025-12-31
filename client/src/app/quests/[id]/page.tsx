@@ -1,15 +1,14 @@
 "use client";
 
-import React, { use, useEffect, useState } from "react";
+import React, { use, useEffect, useState, useCallback } from "react";
 import api from "../../../lib/axios";
-import { useAuthStore } from "../../../store/useAuthStore"; // 내 ID 확인용
+import { useAuthStore } from "../../../store/useAuthStore";
 import { useRouter } from "next/navigation";
+import { isAxiosError } from "axios";
 
 // ----------------------------------------------------------------------
-// [타입 정의]
+// [타입 정의] (서버 DTO & 클라 ViewModel)
 // ----------------------------------------------------------------------
-
-// 1. 서버에서 오는 데이터 (DTO)
 interface QuestParticipantDto {
   userId: number;
   nickname: string;
@@ -32,12 +31,11 @@ interface QuestDetailDto {
   participants: QuestParticipantDto[];
 }
 
-// 2. 클라이언트 UI 모델 (ViewModel)
 interface QuestViewModel {
   id: number;
   title: string;
-  description: string; // DB에 없으므로 생성
-  icon: string;        // Category 매핑
+  description: string;
+  icon: string;
   targetCount: number;
   entryFee: number;
   isJoined: boolean;
@@ -47,6 +45,7 @@ interface QuestViewModel {
     avatar: string;
     current: number;
     isMe: boolean;
+    isHost: boolean;
   }[];
 }
 
@@ -54,97 +53,186 @@ interface QuestDetailPageProps {
   params: Promise<{ id: string }>;
 }
 
-// ----------------------------------------------------------------------
-// [컴포넌트]
-// ----------------------------------------------------------------------
 export default function QuestDetailPage({ params }: QuestDetailPageProps) {
   const { id } = use(params);
   const router = useRouter();
-  
-  // 로그인한 내 정보 (참여자 중 '나'를 찾기 위해 필요)
   const { user } = useAuthStore(); 
 
   const [quest, setQuest] = useState<QuestViewModel | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isJoining, setIsJoining] = useState(false); // 참가 처리 중 상태
   const [error, setError] = useState<string | null>(null);
+  const [isLeaving, setIsLeaving] = useState(false); // 탈퇴 처리 중 상태 추가
 
-  // API 호출
+// ----------------------------------------------------------------------
+  // [Event] 퀘스트 탈퇴
+  // ----------------------------------------------------------------------
+  const handleLeave = async () => {
+    if (!quest || !user) return;
+
+    // 1. 내가 방장인지, 마지막 멤버인지 확인
+    const myInfo = quest.participants.find(p => p.isMe);
+    const isMyHost = myInfo?.isMe && myInfo?.isHost;
+    const isLastMember = quest.participants.length === 1;
+
+    let confirmMsg = "정말 퀘스트를 포기하시겠습니까?\n(참가비는 환불되지 않습니다.)";
+    
+    if (isMyHost) {
+       if (!isLastMember) {
+          confirmMsg = "방장이 탈퇴하면 다음 순서의 멤버에게 방장이 위임됩니다.\n정말 탈퇴하시겠습니까?";
+       } else {
+          confirmMsg = "남은 멤버가 없어 퀘스트가 삭제됩니다.\n정말 삭제하시겠습니까?";
+       }
+    }
+
+    if (!window.confirm(confirmMsg)) return;
+
+    setIsLeaving(true);
+
+    try {
+      // 2. 탈퇴 요청
+      const response = await api.post("/quest/leave", { questId: quest.id });
+      const result = response.data;
+
+      // 3. 성공 처리 (일반적인 경우)
+      if (result.success) {
+        alert("퀘스트를 탈퇴했습니다.");
+        router.replace("/quests"); // 뒤로가기 방지를 위해 replace 사용
+      }
+
+    } catch (err) {
+      console.error("Leave Failed:", err);
+      
+      // 4. [핵심] 방이 폭파되어 'QUEST_NOT_FOUND' 에러가 난 경우 -> 이것도 성공으로 간주
+      if (isAxiosError(err)) {
+        const errorCode = err.response?.data?.error;
+        const status = err.response?.status;
+
+        // 404(NotFound)거나 명시적 에러코드가 QUEST_NOT_FOUND라면 방이 삭제된 것
+        if (status === 404 || errorCode === "QUEST_NOT_FOUND") {
+            alert("퀘스트가 삭제되었습니다. 목록으로 돌아갑니다.");
+            router.replace("/quests");
+            return;
+        }
+
+        // 그 외 진짜 에러 처리
+        alert(`탈퇴 실패: ${errorCode || "서버 오류"}`);
+      }
+    } finally {
+      // 페이지 이동이 일어나면 어차피 언마운트되지만, 안전하게 처리
+      if (window.location.pathname.includes(`/quests/${id}`)) {
+          setIsLeaving(false);
+      }
+    }
+  };
+
+  // ----------------------------------------------------------------------
+  // [Helper] 서버 데이터를 UI 데이터로 변환 (Parser)
+  // ----------------------------------------------------------------------
+  const mapDataToViewModel = useCallback((data: QuestDetailDto, myId?: number): QuestViewModel => {
+    return {
+      id: data.id,
+      title: data.title,
+      description: `${data.durationDays}일 동안 진행되는 퀘스트입니다. 목표를 달성하고 보상을 획득하세요!`,
+      targetCount: data.targetCount,
+      entryFee: data.entryFee,
+      isJoined: data.isJoined,
+      icon: data.category === 0 ? "🏋️" : data.category === 1 ? "📚" : "🌱",
+      
+      participants: data.participants.map((p) => ({
+        userId: p.userId,
+        name: p.nickname || `유저 ${p.userId}`,
+        avatar: p.profileImageUrl || getRandomAvatar(p.userId),
+        current: p.currentCount,
+        isMe: myId ? myId === p.userId : false,
+        isHost: p.isHost,
+      })),
+    };
+  }, []);
+
+  // ----------------------------------------------------------------------
+  // [API] 초기 로드
+  // ----------------------------------------------------------------------
   useEffect(() => {
     const fetchDetail = async () => {
       try {
         setIsLoading(true);
-        // GET 요청
         const response = await api.get(`/quest/${id}`);
-        const result = response.data; // QuestDetailResultDto
+        const result = response.data;
 
         if (result.success && result.data) {
-          const data: QuestDetailDto = result.data;
-
-          // [Data Mapping] Server DTO -> Client ViewModel
-          const mappedQuest: QuestViewModel = {
-            id: data.id,
-            title: data.title,
-            // DB에 설명 필드가 없으므로, 제목과 기간을 조합해 생성
-            description: `${data.durationDays}일 동안 진행되는 퀘스트입니다. 목표를 달성하고 보상을 획득하세요!`,
-            targetCount: data.targetCount,
-            entryFee: data.entryFee,
-            isJoined: data.isJoined,
-            // 카테고리별 아이콘 매핑
-            icon: data.category === 0 ? "🏋️" : data.category === 1 ? "📚" : "🌱",
-            
-            // 참여자 매핑
-            participants: data.participants.map((p) => ({
-              userId: p.userId,
-              name: p.nickname || `유저 ${p.userId}`,
-              // 아바타가 없으면 임의의 이모지 부여 (나중에 실제 이미지로 교체)
-              avatar: p.profileImageUrl || getRandomAvatar(p.userId), 
-              current: p.currentCount,
-              // Zustand에 저장된 내 ID와 비교하여 '나' 식별
-              isMe: user ? user.id === p.userId : false, 
-            })),
-          };
-
-          setQuest(mappedQuest);
+          // 파싱 후 상태 업데이트
+          const mapped = mapDataToViewModel(result.data, user?.id);
+          setQuest(mapped);
         } else {
-          setError(result.error || "퀘스트 정보를 불러오지 못했습니다.");
+          setError(result.error || "정보 로드 실패");
         }
       } catch (err) {
         console.error(err);
-        setError("서버 통신 중 오류가 발생했습니다.");
+        setError("서버 통신 오류");
       } finally {
         setIsLoading(false);
       }
     };
 
-    if (id) {
-      fetchDetail();
-    }
-  }, [id, user]);
+    if (id) fetchDetail();
+  }, [id, user, mapDataToViewModel]);
 
-  // 임시 아바타 생성기 (유저 ID 기반)
+  // ----------------------------------------------------------------------
+  // [Event] 참가하기 버튼 클릭
+  // ----------------------------------------------------------------------
+  const handleJoin = async () => {
+    if (!quest) return;
+    if (!user) {
+      alert("로그인이 필요합니다.");
+      router.push("/login");
+      return;
+    }
+
+    // 확인 팝업 (게임의 Confirm Dialog)
+    const confirmMsg = quest.entryFee > 0 
+      ? `${quest.entryFee} 골드가 차감됩니다. 참가하시겠습니까?` 
+      : "무료로 참가하시겠습니까?";
+      
+    if (!window.confirm(confirmMsg)) return;
+
+    setIsJoining(true); // 버튼 비활성화 (따닥 방지)
+
+    try {
+      // 1. 참가 요청 패킷 전송
+      const response = await api.post("/quest/join", { questId: quest.id });
+      const result = response.data;
+
+      if (result.success && result.data) {
+        // 2. 성공 시 서버가 준 최신 데이터로 UI 즉시 갱신 (새로고침 X)
+        const updatedQuest = mapDataToViewModel(result.data, user.id);
+        setQuest(updatedQuest);
+        alert("파티에 참가했습니다! 🎉");
+      } 
+    } catch (err) {
+      console.error("Join Failed:", err);
+      if (isAxiosError(err)) {
+        const errorCode = err.response?.data?.error;
+        // 에러 코드별 메시지 처리
+        if (errorCode === "QUEST_FULL") alert("이미 인원이 꽉 찼습니다.");
+        else if (errorCode === "ALREADY_JOINED") alert("이미 참가 중입니다.");
+        else if (errorCode === "NOT_ENOUGH_GOLD") alert("골드가 부족합니다.");
+        else alert(`참가 실패: ${errorCode || "서버 오류"}`);
+      }
+    } finally {
+      setIsJoining(false); // 버튼 활성화
+    }
+  };
+
+
+  // 유틸: 임시 아바타
   const getRandomAvatar = (uid: number) => {
     const emojis = ["🧑‍🦰", "🧟‍♂️", "👨", "🐤", "🐶", "🐱"];
     return emojis[uid % emojis.length];
   };
 
-  // 로딩 화면
-  if (isLoading) {
-    return (
-      <div className="flex h-full w-full items-center justify-center bg-gray-50">
-        <span className="text-gray-500 animate-pulse">로딩 중... 🔄</span>
-      </div>
-    );
-  }
-
-  // 에러 화면
-  if (error || !quest) {
-    return (
-      <div className="flex h-full w-full flex-col items-center justify-center bg-gray-50 gap-4">
-        <span className="text-red-500">{error || "존재하지 않는 퀘스트입니다."}</span>
-        <button onClick={() => router.back()} className="text-blue-500 underline">뒤로가기</button>
-      </div>
-    );
-  }
+  if (isLoading) return <div className="p-10 text-center">로딩 중... 🔄</div>;
+  if (error || !quest) return <div className="p-10 text-center text-red-500">{error || "퀘스트 없음"}</div>;
 
   return (
     <div className="relative h-full w-full bg-gray-50">
@@ -152,7 +240,7 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
       {/* 스크롤 영역 */}
       <div className="absolute inset-0 overflow-y-auto px-6 py-8 pb-24">
         
-        {/* 상단 타이틀 & 아이콘 */}
+        {/* 상단 정보 */}
         <div className="mb-8 flex flex-col items-center">
           <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-3xl bg-white shadow-md text-5xl border-2 border-gray-100">
             {quest.icon}
@@ -163,9 +251,20 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
           <p className="mt-2 text-sm text-gray-500 text-center px-4 break-keep">
             {quest.description}
           </p>
+
+          {/* ★ [UI 추가] 퀘스트 탈퇴 버튼 (우측 상단 배치) */}
+          {quest.isJoined && (
+            <button
+              onClick={handleLeave}
+              disabled={isLeaving}
+              className="absolute top-4 right-4 z-10 rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-md transition active:scale-95 hover:bg-red-700 disabled:bg-gray-400"
+            >
+              {isLeaving ? "처리중..." : "퀘스트 탈퇴"}
+            </button>
+          )}
         </div>
 
-        {/* 메인 카드 (참여자 현황) */}
+        {/* 메인 카드 */}
         <section className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
           
           <div className="mb-4 flex items-center justify-between">
@@ -174,17 +273,14 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
             </h2>
           </div>
 
-          {/* 참여자 리스트 */}
+          {/* 리스트 */}
           <div className="flex flex-col gap-4">
             {quest.participants.map((p, index) => {
-              // 진행률 계산
               const progress = Math.min(100, Math.max(0, (p.current / quest.targetCount) * 100));
               const isCompleted = p.current >= quest.targetCount;
 
               return (
                 <div key={index} className="flex items-center gap-3">
-                  
-                  {/* 아바타 */}
                   <div className="relative">
                     <div className={`flex h-12 w-12 items-center justify-center rounded-full text-2xl shadow-sm border-2 
                       ${p.isMe ? "bg-yellow-50 border-yellow-400" : "bg-gray-50 border-gray-100"}`}
@@ -192,13 +288,9 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
                       {p.avatar}
                     </div>
                     {isCompleted && (
-                      <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white ring-2 ring-white">
-                        V
-                      </div>
+                      <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white ring-2 ring-white">V</div>
                     )}
                   </div>
-
-                  {/* 이름 & 프로그레스 */}
                   <div className="flex-1 flex flex-col gap-1.5">
                     <div className="flex justify-between items-end">
                       <span className={`text-sm font-bold ${p.isMe ? "text-slate-900" : "text-slate-600"}`}>
@@ -208,7 +300,6 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
                         {p.current} / {quest.targetCount}회
                       </span>
                     </div>
-
                     <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
                       <div 
                         className={`h-full rounded-full transition-all duration-500 ease-out 
@@ -218,7 +309,6 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
                       />
                     </div>
                   </div>
-
                 </div>
               );
             })}
@@ -226,9 +316,8 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
 
           <hr className="my-6 border-slate-100" />
 
-          {/* 하단 액션 버튼 (상태에 따라 변경) */}
+          {/* 버튼 분기 */}
           {quest.isJoined ? (
-            // 이미 참여중인 경우
             <button
               className="w-full rounded-xl bg-green-500 py-4 text-lg font-bold text-white shadow-lg shadow-green-500/20 transition active:scale-95 hover:bg-green-600"
               onClick={() => alert("인증 기능은 Day 5에 구현됩니다!")}
@@ -236,13 +325,18 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
               📷 인증하기
             </button>
           ) : (
-             // 미참여 상태인 경우
             <>
               <button
-                className="w-full rounded-xl bg-slate-900 py-4 text-lg font-bold text-white shadow-lg shadow-slate-900/20 transition active:scale-95 hover:bg-slate-800"
-                onClick={() => alert("참가 로직(API) 연결 필요")}
+                onClick={handleJoin}
+                disabled={isJoining} // 처리 중 클릭 방지
+                className={`w-full rounded-xl py-4 text-lg font-bold text-white shadow-lg transition active:scale-95
+                  ${isJoining 
+                    ? "bg-gray-400 cursor-not-allowed" 
+                    : "bg-slate-900 hover:bg-slate-800 shadow-slate-900/20"
+                  }
+                `}
               >
-                이 파티 참가하기
+                {isJoining ? "입장 처리 중..." : "이 파티 참가하기"}
               </button>
               <p className="mt-3 text-center text-xs text-slate-400">
                 참가 시 {quest.entryFee} G가 차감됩니다.
@@ -251,7 +345,6 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
           )}
 
         </section>
-        
       </div>
     </div>
   );

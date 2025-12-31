@@ -152,5 +152,135 @@ namespace QuestMateAPI.Infrastructure.Repositories
 
             return quest;
         }
+
+        public async Task<string> JoinQuestAsync(long questId, long userId)
+        {
+            using var conn = _context.CreateConnection();
+            if (conn.State != System.Data.ConnectionState.Open) conn.Open();
+
+            using var trans = conn.BeginTransaction();
+
+            try
+            {
+                // 1. 방 상태 및 인원 체크 (Locking Read - FOR UPDATE)
+                // 모집중(0)이고, 자리가 남았는지 확인
+                var quest = await conn.QuerySingleOrDefaultAsync<dynamic>(@"
+            SELECT status, current_member_count, max_member_count, entry_fee 
+            FROM Quest 
+            WHERE id = @Id 
+            FOR UPDATE", // ★ 중요: 내가 처리하는 동안 다른 사람이 건드리지 못하게 락
+                    new { Id = questId }, transaction: trans);
+
+                if (quest == null) return "QUEST_NOT_FOUND";
+                if (quest.status != 0) return "QUEST_CLOSED"; // 모집중 아님
+                if (quest.current_member_count >= quest.max_member_count) return "QUEST_FULL"; // 꽉 참
+
+                // 2. 이미 참여 중인지 체크
+                // (UK_Quest_User 제약조건이 있지만, 명시적 에러 메시지를 위해 체크)
+                var isJoined = await conn.ExecuteScalarAsync<bool>(@"
+            SELECT COUNT(1) FROM QuestMember WHERE quest_id = @QId AND user_id = @UId",
+                    new { QId = questId, UId = userId }, transaction: trans);
+
+                if (isJoined) return "ALREADY_JOINED";
+
+                // 3. (추후) 골드 차감 로직
+                // int entryFee = quest.entry_fee;
+                // if (userGold < entryFee) return "NOT_ENOUGH_GOLD";
+
+                // 4. 멤버 추가
+                await conn.ExecuteAsync(@"
+            INSERT INTO QuestMember (quest_id, user_id, is_host, is_success, joined_at)
+            VALUES (@QId, @UId, 0, 0, UTC_TIMESTAMP())",
+                    new { QId = questId, UId = userId }, transaction: trans);
+
+                // 5. 방 인원수 +1 증가
+                await conn.ExecuteAsync(@"
+            UPDATE Quest 
+            SET current_member_count = current_member_count + 1 
+            WHERE id = @QId",
+                    new { QId = questId }, transaction: trans);
+
+                trans.Commit();
+                return null; // 성공 (에러 없음)
+            }
+            catch (Exception ex)
+            {
+                trans.Rollback();
+                // 로그 남기기
+                return "INTERNAL_ERROR";
+            }
+        }
+
+        public async Task<string> LeaveQuestAsync(long questId, long userId)
+        {
+            using var conn = _context.CreateConnection();
+            if (conn.State != System.Data.ConnectionState.Open) conn.Open();
+            using var trans = conn.BeginTransaction();
+
+            try
+            {
+                // 1. 현재 유저 정보 조회 (방장 여부)
+                var member = await conn.QuerySingleOrDefaultAsync<QuestMember>(
+                    "SELECT is_host FROM QuestMember WHERE quest_id=@QId AND user_id=@UId",
+                    new { QId = questId, UId = userId }, transaction: trans);
+
+                if (member == null) return "NOT_JOINED";
+
+                bool isHost = member.IsHost; // MySQL Boolean(TinyInt)
+
+                // 2. 멤버 삭제 (일단 나를 지움)
+                await conn.ExecuteAsync(
+                    "DELETE FROM QuestMember WHERE quest_id=@QId AND user_id=@UId",
+                    new { QId = questId, UId = userId }, transaction: trans);
+
+                // 3. 인원수 감소
+                await conn.ExecuteAsync(
+                    "UPDATE Quest SET current_member_count = current_member_count - 1 WHERE id=@QId",
+                    new { QId = questId }, transaction: trans);
+
+                // 4. [핵심] 방장이 나갔다면? 승계 or 폭파 로직
+                if (isHost)
+                {
+                    // 남은 멤버 중 가장 오래된 사람 찾기
+                    var nextHostUserId = await conn.ExecuteScalarAsync<long?>(@"
+                SELECT user_id 
+                FROM QuestMember 
+                WHERE quest_id = @QId 
+                ORDER BY joined_at ASC 
+                LIMIT 1",
+                        new { QId = questId }, transaction: trans);
+
+                    if (nextHostUserId.HasValue)
+                    {
+                        // A. 승계 (다음 타자를 방장으로 임명)
+                        await conn.ExecuteAsync(
+                            "UPDATE QuestMember SET is_host = 1 WHERE quest_id = @QId AND user_id = @NextId",
+                            new { QId = questId, NextId = nextHostUserId.Value }, transaction: trans);
+
+                        // Quest 테이블의 HostUserId도 갱신 (메타 데이터 동기화)
+                        await conn.ExecuteAsync(
+                            "UPDATE Quest SET host_user_id = @NextId WHERE id = @QId",
+                            new { QId = questId, NextId = nextHostUserId.Value }, transaction: trans);
+                    }
+                    else
+                    {
+                        // B. 폭파 (남은 사람이 없음) -> 퀘스트 삭제 or 실패 처리
+                        // 여기서는 '모집중' 상태라면 삭제, '진행중'이라면 실패 처리 등이 필요하지만
+                        // MVP 단계에선 일단 Quest 테이블에서 삭제(Soft Delete 추천하지만 일단 Hard Delete)
+                        await conn.ExecuteAsync(
+                            "DELETE FROM Quest WHERE id = @QId",
+                            new { QId = questId }, transaction: trans);
+                    }
+                }
+
+                trans.Commit();
+                return null; // 성공
+            }
+            catch
+            {
+                trans.Rollback();
+                return "DB_ERROR";
+            }
+        }
     }
 }
