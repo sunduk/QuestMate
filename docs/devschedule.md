@@ -46,9 +46,9 @@
     *   꾸미기 아이템, 아이콘 그리느라 시간 쓰지 마세요.
     *   [Kenney Assets](https://kenney.nl/) 같은 무료 게임 에셋 사이트에서 2D 가구 스프라이트 팩 다운받아서 쓰세요. MVP는 기능 검증이 먼저입니다.
 
-3.  **ORM(Entity Framework)을 믿으세요:**
-    *   SQL 쿼리 직접 짜지 마시고 EF Core 쓰세요.
-    *   `db.Users.Where(u => u.Id == id).Include(u => u.Items)` 처럼 C# 링큐(LINQ)로 짜는 게 훨씬 빠르고 익숙하실 겁니다.
+3.  **Dapper를 씁니다.**
+    *   SQL 쿼리 직접 짜지 마시고 Dapper 쓰세요.
+    *   ORM보다 이게 익숙함.
 
 4.  **하우징 데이터는 JSON 통짜 저장:**
     *   가구 하나하나를 RDB 테이블(Row)로 관리하면 좌표 업데이트할 때마다 DB 터집니다.
