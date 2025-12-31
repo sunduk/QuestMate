@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function HomePage() {
   // ----------------------------------------------------------------------
@@ -10,6 +12,20 @@ export default function HomePage() {
   // 나중에는 서버에서 DB 데이터를 받아와서 판단하게 됩니다.
   const [hasActiveQuest, setHasActiveQuest] = useState(true);
   // ----------------------------------------------------------------------
+
+  const router = useRouter();
+  useEffect(() => {
+    // 임시 로그인 처리. 나중에 토큰/세션으로 교체.
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
+    if (!isLoggedIn) {
+      router.push("/");
+    }
+
+    if (isLoggedIn === "false") {
+      router.push("/");
+    }
+  }, [router]);
+  
 
   return (
     <div className="flex min-h-full flex-col items-center px-6 py-8">

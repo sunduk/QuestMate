@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using QuestMateAPI.Application.DTOs.Auth;
 using QuestMateAPI.Application.Interfaces;
 using QuestMateAPI.Application.Interfaces.Repositories;
 using QuestMateAPI.Application.Security;
 using QuestMateAPI.Domain.Entities;
 using QuestMateAPI.Infrastructure.Repositories;
+using System.Security.Claims;
 
 namespace QuestMateAPI.Application.Services
 {
@@ -76,6 +78,32 @@ namespace QuestMateAPI.Application.Services
             };
         }
 
+        public async Task<LogoutResultDto> LogoutAsync(LogoutRequestDto request, long userId)
+        {
+            try
+            {
+                // 추후 구현: Refresh Token 삭제 로직
+                // await _repository.RemoveRefreshTokenAsync(userId, request.RefreshToken);
+
+                // 4. 표준 로거 사용 (날짜, 스레드ID 등 자동 포함됨)
+                //_logger.LogInformation("User {UserId} logged out successfully.", userId);
+
+                return new LogoutResultDto
+                {
+                    Success = true
+                };
+            }
+            catch (Exception ex)
+            {
+                //_logger.LogError(ex, "Logout failed for user {UserId}", userId);
+                return new LogoutResultDto
+                {
+                    Success = false,
+                    Error = "INTERNAL_SERVER_ERROR"
+                };
+            }
+        }
+
         public async Task<SignUpResultDto> SignUpAsync(SignUpRequestDto request)
         {
             // 1. 이메일 중복 체크
@@ -110,7 +138,8 @@ namespace QuestMateAPI.Application.Services
             return new SignUpResultDto
             {
                 Success = true,
-                UserId = userId
+                UserId = account.UserId,
+                AccessToken = _jwt.GenerateAccessToken(account.UserId)
             };
         }
 

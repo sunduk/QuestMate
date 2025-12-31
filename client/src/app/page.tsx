@@ -9,15 +9,20 @@ export default function LoginPage() {
   useEffect(() => {
     // 임시 로그인 처리. 나중에 토큰/세션으로 교체.
     const isLoggedIn = localStorage.getItem("isLoggedIn");
-    if (isLoggedIn) {
-      router.push("/home");
+    if (isLoggedIn != "false") {
+      if (isLoggedIn) {
+        router.push("/home");
+      }
     }
+
   }, [router]);
 
+  const handleJoin = () => {
+    router.push("/join");
+  };
+
   const handleLogin = () => {
-    // 서버 인증은 나중에
-    localStorage.setItem("isLoggedIn", "true");
-    router.replace("/home");
+    router.push("/login");
   };
 
   return (
@@ -51,11 +56,25 @@ export default function LoginPage() {
         </button>
       </div>
 
-      {/* 3. CTA 버튼 (모험 시작하기) */}
-      <button className="mt-8 w-full max-w-xs rounded-xl bg-gradient-to-r from-yellow-400 to-yellow-500 py-4 text-xl font-bold text-white shadow-lg transition active:scale-95 active:shadow-none"
-        onClick={handleLogin}>
-        모험 시작하기
-      </button>
+      <div className="flex w-full flex-col items-center gap-3 mt-8">
+        
+        {/* 1. 로그인 (Primary: 골드/오렌지 - 접속/시작 느낌) */}
+        <button 
+          onClick={handleLogin}
+          className="w-full max-w-xs rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 py-4 text-xl font-bold text-white shadow-lg shadow-orange-500/30 transition active:scale-95 active:shadow-none"
+        >
+          로그인
+        </button>
+
+        {/* 2. 회원가입 (Secondary: 인디고/퍼플 - 신비로운/생성 느낌) */}
+        <button 
+          onClick={handleJoin}
+          className="w-full max-w-xs rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 py-4 text-xl font-bold text-white shadow-lg shadow-indigo-500/30 transition active:scale-95 active:shadow-none"
+        >
+          회원가입
+        </button>
+
+      </div>
 
       {/* 4. 데코레이션 (캐릭터들) */}
       <div className="mt-12 grid w-full grid-cols-3 gap-4 opacity-80">
