@@ -15,9 +15,11 @@
     *   실제 게임 룰(골드 차감, 레벨업, 권한 체크)을 수행합니다.
     *   여러 Repository를 조합(Transaction)하여 하나의 "기능"을 완성합니다.
     *   `try-catch`로 예외를 잡아 로그를 남기고, `ResultDto`로 포장해서 리턴합니다.
+    *   if문 한줄이더라도 { } 로 묶기.
 *   **Repository (DB Access Object):**
     *   SQL을 작성하고 DB와 통신합니다.
     *   **로직 금지.** 오직 CRUD(넣고, 빼고, 수정하고, 지우고)만 수행합니다.
+    *   db 컬럼이 tinyint인 경우 `컬럼명 == 1` 로 비교하지 말고 그냥 bool로 대입하기.
 
 ---
 
@@ -27,7 +29,8 @@
 *   **C# (Class, Property, Method):** `PascalCase`
     *   `QuestService`, `CreateQuestAsync`, `MaxMemberCount`
 *   **MySQL (Column):** `snake_case`
-    *   `max_member_count`, `is_host`
+    * 테이블 네이밍 : `local_account`
+    * 컬럼 네이밍 :  `max_member_count`, `is_host`
 *   **매핑 전략:**
     *   `Program.cs`에 `Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;` 설정을 통해 자동 매핑합니다.
     *   쿼리에서 `AS` 별칭을 쓰지 않아도 됩니다.
