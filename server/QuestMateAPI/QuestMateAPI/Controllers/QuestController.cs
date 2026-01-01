@@ -47,7 +47,9 @@ namespace QuestMateAPI.Controllers
             var result = await _questService.GetQuestListAsync();
 
             if (!result.Success)
+            {
                 return StatusCode(500, result);
+            }
 
             return Ok(result);
         }
@@ -134,6 +136,42 @@ namespace QuestMateAPI.Controllers
             if (!result.Success)
             {
                 // 에러 메시지에 따라 상태코드 분기 가능
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
+        [HttpPost("verify/delete")]
+        [Authorize]
+        public async Task<IActionResult> DeleteVerification([FromBody] QuestVerifyDeleteRequestDto dto)
+        {
+            var userIdStr = User.FindFirst("uid")?.Value;
+            if (!long.TryParse(userIdStr, out long userId)) return Unauthorized();
+
+            var result = await _questService.DeleteVerificationAsync(userId, dto);
+
+            if (!result.Success)
+            {
+                if (result.Error == "VERIFICATION_NOT_FOUND") return NotFound(result);
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
+
+        [HttpPost("verify/update")]
+        [Authorize]
+        public async Task<IActionResult> UpdateVerification([FromForm] QuestVerifyUpdateRequestDto dto)
+        {
+            var userIdStr = User.FindFirst("uid")?.Value;
+            if (!long.TryParse(userIdStr, out long userId)) return Unauthorized();
+
+            var result = await _questService.UpdateVerificationAsync(userId, dto);
+
+            if (!result.Success)
+            {
+                if (result.Error == "VERIFICATION_NOT_FOUND") return NotFound(result);
                 return BadRequest(result);
             }
 

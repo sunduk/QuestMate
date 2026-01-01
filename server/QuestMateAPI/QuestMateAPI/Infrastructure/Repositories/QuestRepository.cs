@@ -344,5 +344,119 @@ namespace QuestMateAPI.Infrastructure.Repositories
                 throw;
             }
         }
+
+        public async Task<string> DeleteVerificationAsync(long questId, long verificationId, long userId)
+        {
+            using var conn = _context.CreateConnection();
+            if (conn.State != System.Data.ConnectionState.Open) await conn.OpenAsync();
+            using var trans = await conn.BeginTransactionAsync();
+
+            try
+            {
+                // 1. 인증샷 존재 및 소유권 확인
+                var verification = await conn.QuerySingleOrDefaultAsync<QuestVerification>(@"
+                    SELECT * FROM quest_verification 
+                    WHERE id = @Id AND quest_id = @QId AND user_id = @UId",
+                    new { Id = verificationId, QId = questId, UId = userId }, transaction: trans);
+
+                if (verification == null) return "VERIFICATION_NOT_FOUND";
+
+                // 2. 인증샷 삭제
+                await conn.ExecuteAsync("DELETE FROM quest_verification WHERE id = @Id",
+                    new { Id = verificationId }, transaction: trans);
+
+                // 3. 진행도 감소
+                await conn.ExecuteAsync(@"
+                    UPDATE questmember 
+                    SET current_count = GREATEST(current_count - 1, 0) 
+                    WHERE quest_id = @QId AND user_id = @UId",
+                    new { QId = questId, UId = userId }, transaction: trans);
+
+                // 4. 성공 상태 재계산 (혹시 목표치 미달로 떨어졌는지 확인)
+                var result = await conn.QuerySingleAsync<dynamic>(@"
+                    SELECT 
+                        qm.current_count, 
+                        q.target_count,
+                        qm.is_success
+                    FROM questmember qm
+                    JOIN quest q ON qm.quest_id = q.id
+                    WHERE qm.quest_id = @QId AND qm.user_id = @UId",
+                    new { QId = questId, UId = userId }, transaction: trans);
+
+                // MySQL에서 boolean은 tinyint(1)로 처리되므로 1/0 체크
+                bool isSuccess = result.is_success;
+                int currentCount = result.current_count;
+                int targetCount = result.target_count;
+
+                if (isSuccess && currentCount < targetCount)
+                {
+                    await conn.ExecuteAsync(@"
+                        UPDATE questmember SET is_success = 0 
+                        WHERE quest_id = @QId AND user_id = @UId",
+                        new { QId = questId, UId = userId }, transaction: trans);
+                }
+
+                await trans.CommitAsync();
+                return null; // 성공
+            }
+            catch
+            {
+                await trans.RollbackAsync();
+                return "DB_ERROR";
+            }
+        }
+
+        public async Task<string> UpdateVerificationAsync(long questId, long verificationId, long userId, string? comment, string? imageUrl)
+        {
+            using var conn = _context.CreateConnection();
+            if (conn.State != System.Data.ConnectionState.Open) await conn.OpenAsync();
+            using var trans = await conn.BeginTransactionAsync();
+
+            try
+            {
+                // 1. 인증샷 존재 및 소유권 확인
+                var verification = await conn.QuerySingleOrDefaultAsync<QuestVerification>(@"
+                    SELECT * FROM quest_verification 
+                    WHERE id = @Id AND quest_id = @QId AND user_id = @UId",
+                    new { Id = verificationId, QId = questId, UId = userId }, transaction: trans);
+
+                if (verification == null) return "VERIFICATION_NOT_FOUND";
+
+                // 2. 인증샷 수정
+                await conn.ExecuteAsync(@"
+                    UPDATE quest_verification
+                    SET comment = COALESCE(@Comment, comment),
+                        image_url = COALESCE(@ImageUrl, image_url),
+                        created_at = UTC_TIMESTAMP()
+                    WHERE id = @Id",
+                    new { Id = verificationId, Comment = comment, ImageUrl = imageUrl }, transaction: trans);
+
+                await trans.CommitAsync();
+                return null; // 성공
+            }
+            catch
+            {
+                await trans.RollbackAsync();
+                return "DB_ERROR";
+            }
+        }
+
+        public async Task<IEnumerable<QuestVerificationDto>> GetQuestVerificationsAsync(long questId)
+        {
+            using var conn = _context.CreateConnection();
+            var sql = @"
+                SELECT 
+                    qv.id,
+                    qv.user_id,
+                    qv.image_url,
+                    qv.comment,
+                    qv.created_at
+                FROM quest_verification qv
+                JOIN local_account u ON qv.user_id = u.id
+                WHERE qv.quest_id = @QuestId
+                ORDER BY qv.created_at DESC"; // 최신 인증샷이 먼저 보이도록
+
+            return await conn.QueryAsync<QuestVerificationDto>(sql, new { QuestId = questId });
+        }
     }
 }

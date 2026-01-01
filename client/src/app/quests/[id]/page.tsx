@@ -17,6 +17,18 @@ interface QuestParticipantDto {
   currentCount: number;
 }
 
+// [추가] 클라이언트에서 사용할 인증 정보 타입
+interface VerificationViewModel {
+  id: number;
+  userId: number; // 작성자 ID
+  isMine: boolean; // 내 게시물인지 여부
+  userName: string;
+  userAvatar: string;
+  imageUrl: string;
+  comment: string;
+  createdAt: string;
+}
+
 interface QuestDetailDto {
   id: number;
   title: string;
@@ -29,6 +41,7 @@ interface QuestDetailDto {
   status: number;
   isJoined: boolean;
   participants: QuestParticipantDto[];
+  verifications: VerificationViewModel[]; // [추가] 인증샷 목록
 }
 
 interface QuestViewModel {
@@ -47,6 +60,7 @@ interface QuestViewModel {
     isMe: boolean;
     isHost: boolean;
   }[];
+  verifications: VerificationViewModel[]; // [추가] 인증샷 목록
 }
 
 interface QuestDetailPageProps {
@@ -56,7 +70,7 @@ interface QuestDetailPageProps {
 export default function QuestDetailPage({ params }: QuestDetailPageProps) {
   const { id } = use(params);
   const router = useRouter();
-  const { user } = useAuthStore(); 
+  const { user } = useAuthStore();
 
   const [quest, setQuest] = useState<QuestViewModel | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -70,12 +84,54 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null); // 미리보기 URL
   const [comment, setComment] = useState(""); // 한줄 소감
 
+  // [추가] 인증샷 삭제 처리 중 상태
+  const [deletingVerifyId, setDeletingVerifyId] = useState<number | null>(null);
+
   // 파일 선택창 트리거용 Ref
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const onClickVerify = () => {
     // 숨겨진 input을 대신 클릭해줌
     fileInputRef.current?.click();
+  };
+
+  // ----------------------------------------------------------------------
+  // [Event] 인증샷 삭제
+  // ----------------------------------------------------------------------
+  const handleDeleteVerify = async (verifyId: number) => {
+    if (!quest) return;
+    if (!window.confirm("정말 이 인증샷을 삭제하시겠습니까?")) return;
+
+    setDeletingVerifyId(verifyId);
+
+    try {
+      const response = await api.post("/quest/verify/delete", {
+        QuestId: quest.id,
+        VerificationId: verifyId,
+      });
+      const result = response.data;
+
+      if (result.success) {
+        alert("인증샷이 삭제되었습니다.");
+        // UI에서 즉시 제거
+        setQuest(prev => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            verifications: prev.verifications.filter(v => v.id !== verifyId),
+          };
+        });
+      } else {
+        alert(result.error || "삭제 실패");
+      }
+    } catch (err) {
+      console.error("Verify Delete Failed:", err);
+      if (isAxiosError(err)) {
+        alert(`삭제 실패: ${err.response?.data?.error || "서버 오류"}`);
+      }
+    } finally {
+      setDeletingVerifyId(null);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,7 +145,7 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
     }
 
     setVerifyImage(file);
-    
+
     // 브라우저 메모리에 임시 URL 생성 (미리보기용)
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
@@ -110,24 +166,24 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
       const formData = new FormData();
       formData.append("QuestId", quest.id.toString());
       // 코멘트가 없으면 빈 문자열이라도 보내야 안전할 수 있음 (서버 설정에 따라)
-      formData.append("Comment", comment || ""); 
-      formData.append("Image", verifyImage); 
+      formData.append("Comment", comment || "");
+      formData.append("Image", verifyImage);
 
       // 2. 전송 (★ 여기가 수정됨)
       // 세 번째 인자로 설정 객체(Config)를 넘겨서 Content-Type을 덮어씁니다.
       const response = await api.post("/quest/verify", formData, {
         headers: {
-          // 이렇게 명시하면 Axios가 "아, 폼 데이터구나" 하고 
+          // 이렇게 명시하면 Axios가 "아, 폼 데이터구나" 하고
           // 브라우저가 자동으로 생성하는 boundary(구분자)를 포함한 정확한 헤더를 사용하게 해줍니다.
           "Content-Type": "multipart/form-data",
         },
       });
-      
+
       const result = response.data;
 
       if (result.success) {
         alert("인증 완료! 오늘도 한 걸음 성장하셨네요! 💪");
-        
+
         // 3. UI 정리 (미리보기 닫기)
         setVerifyImage(null);
         setPreviewUrl(null);
@@ -138,7 +194,7 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
         // 여기서는 편의상 리로드 함수를 호출하거나, 직접 state를 수정
         // setQuest(prev => ... ) 로직이 복잡하니 fetchDetail을 다시 부르는게 낫습니다.
         window.location.reload(); // MVP니까 가장 확실한 방법 (새로고침)
-        
+
       } else {
         alert(result.error || "인증 실패");
       }
@@ -152,7 +208,7 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
     }
   };
 
-// ----------------------------------------------------------------------
+  // ----------------------------------------------------------------------
   // [Event] 퀘스트 탈퇴
   // ----------------------------------------------------------------------
   const handleLeave = async () => {
@@ -164,13 +220,13 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
     const isLastMember = quest.participants.length === 1;
 
     let confirmMsg = "정말 퀘스트를 포기하시겠습니까?\n(참가비는 환불되지 않습니다.)";
-    
+
     if (isMyHost) {
-       if (!isLastMember) {
-          confirmMsg = "방장이 탈퇴하면 다음 순서의 멤버에게 방장이 위임됩니다.\n정말 탈퇴하시겠습니까?";
-       } else {
-          confirmMsg = "남은 멤버가 없어 퀘스트가 삭제됩니다.\n정말 삭제하시겠습니까?";
-       }
+      if (!isLastMember) {
+        confirmMsg = "방장이 탈퇴하면 다음 순서의 멤버에게 방장이 위임됩니다.\n정말 탈퇴하시겠습니까?";
+      } else {
+        confirmMsg = "남은 멤버가 없어 퀘스트가 삭제됩니다.\n정말 삭제하시겠습니까?";
+      }
     }
 
     if (!window.confirm(confirmMsg)) return;
@@ -190,7 +246,7 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
 
     } catch (err) {
       console.error("Leave Failed:", err);
-      
+
       // 4. [핵심] 방이 폭파되어 'QUEST_NOT_FOUND' 에러가 난 경우 -> 이것도 성공으로 간주
       if (isAxiosError(err)) {
         const errorCode = err.response?.data?.error;
@@ -198,9 +254,9 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
 
         // 404(NotFound)거나 명시적 에러코드가 QUEST_NOT_FOUND라면 방이 삭제된 것
         if (status === 404 || errorCode === "QUEST_NOT_FOUND") {
-            alert("퀘스트가 삭제되었습니다. 목록으로 돌아갑니다.");
-            router.replace("/quests");
-            return;
+          alert("퀘스트가 삭제되었습니다. 목록으로 돌아갑니다.");
+          router.replace("/quests");
+          return;
         }
 
         // 그 외 진짜 에러 처리
@@ -209,7 +265,7 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
     } finally {
       // 페이지 이동이 일어나면 어차피 언마운트되지만, 안전하게 처리
       if (window.location.pathname.includes(`/quests/${id}`)) {
-          setIsLeaving(false);
+        setIsLeaving(false);
       }
     }
   };
@@ -218,6 +274,11 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
   // [Helper] 서버 데이터를 UI 데이터로 변환 (Parser)
   // ----------------------------------------------------------------------
   const mapDataToViewModel = useCallback((data: QuestDetailDto, myId?: number): QuestViewModel => {
+    // 1. 백엔드 주소 설정 (환경변수가 없으면 하드코딩된 로컬 주소 사용)
+    // ★ 주의: 개발자님의 백엔드 포트번호를 확인하세요 (launchSettings.json)
+    // 보통 http는 5000, https는 7000번대입니다.
+    const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7173"; 
+
     return {
       id: data.id,
       title: data.title,
@@ -226,7 +287,7 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
       entryFee: data.entryFee,
       isJoined: data.isJoined,
       icon: data.category === 0 ? "🏋️" : data.category === 1 ? "📚" : "🌱",
-      
+
       participants: data.participants.map((p) => ({
         userId: p.userId,
         name: p.nickname || `유저 ${p.userId}`,
@@ -235,6 +296,46 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
         isMe: myId ? myId === p.userId : false,
         isHost: p.isHost,
       })),
+
+      verifications: (data.verifications || []).map(v => {
+        // [수정] 이미지 경로가 http로 시작하지 않으면(상대경로면) 백엔드 주소를 붙임
+        let fullImageUrl = v.imageUrl;
+        if (v.imageUrl && !v.imageUrl.startsWith("http")) {
+            // 슬래시 처리 (중복 방지)
+            const baseUrl = API_BASE_URL.replace(/\/$/, ""); 
+            const path = v.imageUrl.startsWith("/") ? v.imageUrl : `/${v.imageUrl}`;
+            fullImageUrl = `${baseUrl}${path}`;
+        }
+
+        return {
+          id: v.id,
+          userId: v.userId,
+          isMine: myId ? myId === v.userId : false,
+          userName: v.userName || "알 수 없음", 
+          userAvatar: getRandomAvatar(v.userId), 
+          imageUrl: fullImageUrl,
+          comment: v.comment,
+          createdAt: (() => {
+            // 서버에서 받은 UTC 시간을 로컬 시간으로 변환
+            let dateStr = v.createdAt;
+            // 'Z'가 없으면 UTC임을 명시
+            if (!dateStr.endsWith('Z') && !dateStr.includes('+') && !dateStr.includes('T')) {
+              dateStr = dateStr + 'Z';
+            } else if (dateStr.includes('T') && !dateStr.endsWith('Z') && !dateStr.includes('+')) {
+              dateStr = dateStr + 'Z';
+            }
+            return new Date(dateStr).toLocaleString("ko-KR", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false
+            });
+          })()
+        };
+      })
+
     };
   }, []);
 
@@ -278,10 +379,10 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
     }
 
     // 확인 팝업 (게임의 Confirm Dialog)
-    const confirmMsg = quest.entryFee > 0 
-      ? `${quest.entryFee} 골드가 차감됩니다. 참가하시겠습니까?` 
+    const confirmMsg = quest.entryFee > 0
+      ? `${quest.entryFee} 골드가 차감됩니다. 참가하시겠습니까?`
       : "무료로 참가하시겠습니까?";
-      
+
     if (!window.confirm(confirmMsg)) return;
 
     setIsJoining(true); // 버튼 비활성화 (따닥 방지)
@@ -296,7 +397,7 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
         const updatedQuest = mapDataToViewModel(result.data, user.id);
         setQuest(updatedQuest);
         alert("파티에 참가했습니다! 🎉");
-      } 
+      }
     } catch (err) {
       console.error("Join Failed:", err);
       if (isAxiosError(err)) {
@@ -312,6 +413,92 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
     }
   };
 
+  // ----------------------------------------------------------------------
+  // [Event] 인증샷 수정
+  // ----------------------------------------------------------------------
+  const [editingVerifyId, setEditingVerifyId] = useState<number | null>(null); // 현재 편집 중인 인증샷 ID
+  const [editingImage, setEditingImage] = useState<File | null>(null); // 편집 중인 이미지 파일
+  const [editingPreviewUrl, setEditingPreviewUrl] = useState<string | null>(null); // 편집 중인 이미지 미리보기 URL
+  const [editingComment, setEditingComment] = useState<string>(""); // 편집 중인 코멘트
+
+  const handleEditImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("이미지 파일만 업로드 가능합니다.");
+      return;
+    }
+
+    setEditingImage(file);
+    const url = URL.createObjectURL(file);
+    setEditingPreviewUrl(url);
+  };
+
+  const handleSubmitEdit = async () => {
+    if (!quest || editingVerifyId === null) {
+      alert("수정할 인증샷이 없습니다.");
+      return;
+    }
+
+    // 이미지를 변경하지 않았다면 코멘트만 수정 가능
+    // 빈 코멘트도 허용 (이미지만 올리는 경우)
+    
+    try {
+      const formData = new FormData();
+      formData.append("QuestId", quest.id.toString());
+      formData.append("VerificationId", editingVerifyId.toString());
+      // 빈 문자열도 허용
+      formData.append("Comment", editingComment);
+
+      if (editingImage) {
+        formData.append("Image", editingImage);
+      }
+
+      const response = await api.post("/quest/verify/update", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      const result = response.data;
+
+      if (result.success) {
+        setQuest((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            verifications: prev.verifications.map((v) =>
+              v.id === editingVerifyId
+                ? {
+                    ...v,
+                    comment: editingComment,
+                    imageUrl: editingPreviewUrl || v.imageUrl,
+                  }
+                : v
+            ),
+          };
+        });
+        setEditingVerifyId(null);
+        setEditingImage(null);
+        setEditingPreviewUrl(null);
+        setEditingComment("");
+      } else {
+        alert(result.error || "수정 실패");
+      }
+    } catch (err) {
+      console.error("Verify Edit Failed:", err);
+      if (isAxiosError(err)) {
+        alert(`수정 실패: ${err.response?.data?.error || "서버 오류"}`);
+      }
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingVerifyId(null);
+    setEditingImage(null);
+    setEditingPreviewUrl(null);
+    setEditingComment("");
+  };
 
   // 유틸: 임시 아바타
   const getRandomAvatar = (uid: number) => {
@@ -324,10 +511,10 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
 
   return (
     <div className="relative h-full w-full bg-gray-50">
-      
+
       {/* 스크롤 영역 */}
       <div className="absolute inset-0 overflow-y-auto px-6 py-8 pb-24">
-        
+
         {/* 상단 정보 */}
         <div className="mb-8 flex flex-col items-center">
           <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-3xl bg-white shadow-md text-5xl border-2 border-gray-100">
@@ -354,7 +541,7 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
 
         {/* 메인 카드 */}
         <section className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
-          
+
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-bold text-slate-800">
               참여자 현황 <span className="text-slate-400 text-sm font-normal">({quest.participants.length}/4)</span>
@@ -389,7 +576,7 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
                       </span>
                     </div>
                     <div className="h-2.5 w-full rounded-full bg-slate-100 overflow-hidden">
-                      <div 
+                      <div
                         className={`h-full rounded-full transition-all duration-500 ease-out 
                           ${isCompleted ? "bg-blue-500" : "bg-yellow-400"}
                         `}
@@ -404,70 +591,201 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
 
           <hr className="my-6 border-slate-100" />
 
-          {/* ★ [수정됨] 하단 버튼 영역 */}
-           {quest.isJoined ? (
-             <div className="flex flex-col gap-4">
-                
-                {/* 1. 인증 미리보기 영역 (파일 선택됐을 때만 보임) */}
-                {previewUrl && (
-                  <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 animate-fade-in-up">
-                    <img 
-                      src={previewUrl} 
-                      alt="Preview" 
-                      className="mb-3 w-full rounded-lg object-cover h-48 border border-gray-200"
-                    />
-                    <input 
-                      type="text"
-                      placeholder="한줄 소감 (선택)"
-                      value={comment}
-                      onChange={(e) => setComment(e.target.value)}
-                      className="w-full rounded-lg border border-gray-300 p-2 text-sm outline-none focus:border-green-500"
-                    />
-                    <div className="mt-3 flex gap-2">
-                       <button 
-                         onClick={handleSubmitVerify}
-                         disabled={isVerifying}
-                         className="flex-1 rounded-lg bg-green-500 py-3 font-bold text-white shadow-md active:scale-95 disabled:bg-gray-400"
-                       >
-                         {isVerifying ? "전송 중..." : "제출하기"}
-                       </button>
-                       <button 
-                         onClick={() => { setPreviewUrl(null); setVerifyImage(null); }}
-                         className="rounded-lg bg-gray-200 px-4 py-3 font-bold text-gray-600 active:scale-95"
-                       >
-                         취소
-                       </button>
-                    </div>
-                  </div>
-                )}
+          {/* [추가] 인증 내역 피드 섹션 */}
+          <div className="mb-6">
+            <h3 className="mb-4 text-sm font-bold text-slate-500 uppercase tracking-wider">최근 인증 내역</h3>
 
-                {/* 2. 인증하기 버튼 (파일 선택 전) */}
-                {!previewUrl && (
-                  <>
-                    <input 
-                      type="file" 
-                      ref={fileInputRef} 
-                      className="hidden" 
-                      accept="image/*"
-                      onChange={handleFileChange}
-                    />
+            {quest.verifications.length === 0 ? (
+              <div className="py-10 text-center text-gray-400 text-sm bg-gray-50 rounded-2xl border-2 border-dashed border-gray-100">
+                아직 올라온 인증샷이 없습니다.<br />첫 번째 주인공이 되어보세요! 🚀
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-6">
+                {quest.verifications.map((v) => (
+                  <div 
+                    key={v.id} 
+                    className={`overflow-hidden rounded-2xl border bg-white shadow-sm transition-all ${
+                      editingVerifyId === v.id ? "border-blue-500 ring-4 ring-blue-500/20" : "border-gray-100"
+                    }`}
+                  >
+                    {/* 유저 정보 */}
+                    <div className="flex items-center gap-2 p-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-lg border border-gray-200">
+                        {v.userAvatar}
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-xs font-bold text-slate-800">{v.userName}</span>
+                        <span className="text-[10px] text-slate-400">{v.createdAt}</span>
+                      </div>
+                      {/* 수정/삭제 버튼 (편집 모드가 아닐 때만 표시) */}
+                      {v.isMine && editingVerifyId !== v.id && (
+                        <div className="ml-auto flex gap-2">
+                          <button
+                            onClick={() => {
+                              setEditingVerifyId(v.id);
+                              setEditingComment(v.comment);
+                              setEditingPreviewUrl(v.imageUrl);
+                              setEditingImage(null);
+                            }}
+                            className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-100 active:scale-95"
+                          >
+                            수정
+                          </button>
+                          <button
+                            onClick={() => handleDeleteVerify(v.id)}
+                            disabled={deletingVerifyId === v.id}
+                            className="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100 active:scale-95 disabled:opacity-50"
+                          >
+                            {deletingVerifyId === v.id ? "삭제중" : "삭제"}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 인증 이미지 */}
+                    <div className="relative aspect-video w-full bg-gray-100">
+                      <img
+                        src={editingVerifyId === v.id ? (editingPreviewUrl || v.imageUrl) : v.imageUrl}
+                        alt="Verification"
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "https://via.placeholder.com/400x225?text=Image+Not+Found";
+                        }}
+                      />
+                      {/* 이미지 변경 버튼 (편집 모드일 때 우측 하단에 표시) */}
+                      {editingVerifyId === v.id && (
+                        <button
+                          onClick={() => {
+                            const fileInput = document.createElement("input");
+                            fileInput.type = "file";
+                            fileInput.accept = "image/*";
+                            fileInput.onchange = (e) => {
+                              const target = e.target as HTMLInputElement;
+                              const file = target.files?.[0];
+                              if (!file) return;
+                              if (!file.type.startsWith("image/")) {
+                                alert("이미지 파일만 업로드 가능합니다.");
+                                return;
+                              }
+                              setEditingImage(file);
+                              const url = URL.createObjectURL(file);
+                              setEditingPreviewUrl(url);
+                            };
+                            fileInput.click();
+                          }}
+                          className="absolute bottom-2 right-2 rounded-md bg-gray-800 bg-opacity-70 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-opacity-90 active:scale-95"
+                        >
+                          변경
+                        </button>
+                      )}
+                    </div>
+
+                    {/* 코멘트 영역 */}
+                    <div className="p-3">
+                      {editingVerifyId === v.id ? (
+                        <textarea
+                          value={editingComment ?? ""}
+                          onChange={(e) => setEditingComment(e.target.value)}
+                          placeholder="한줄 소감을 남겨주세요."
+                          className="w-full rounded-lg border border-gray-300 p-2 text-sm outline-none focus:border-blue-500"
+                          rows={2}
+                        />
+                      ) : (
+                        v.comment && (
+                          <p className="text-sm text-slate-600 leading-relaxed">
+                            {v.comment}
+                          </p>
+                        )
+                      )}
+                    </div>
+
+                    {/* 제출/취소 버튼 (편집 모드일 때 카드 하단에 표시) */}
+                    {editingVerifyId === v.id && (
+                      <div className="flex gap-2 border-t border-gray-100 p-3">
+                        <button
+                          onClick={handleSubmitEdit}
+                          className="flex-1 rounded-lg bg-blue-600 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
+                        >
+                          제출
+                        </button>
+                        <button
+                          onClick={handleCancelEdit}
+                          className="flex-1 rounded-lg bg-gray-200 py-2 text-sm font-bold text-gray-700 transition hover:bg-gray-300 active:scale-95"
+                        >
+                          취소
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* ★ [수정됨] 하단 버튼 영역 */}
+          {quest.isJoined ? (
+            <div className="flex flex-col gap-4">
+
+              {/* 1. 인증 미리보기 영역 (파일 선택됐을 때만 보임) */}
+              {previewUrl && (
+                <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 animate-fade-in-up">
+                  <img
+                    src={previewUrl}
+                    alt="Preview"
+                    className="mb-3 w-full rounded-lg object-cover h-48 border border-gray-200"
+                  />
+                  <input
+                    type="text"
+                    placeholder="한줄 소감 (선택)"
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    className="w-full rounded-lg border border-gray-300 p-2 text-sm outline-none focus:border-green-500"
+                  />
+                  <div className="mt-3 flex gap-2">
                     <button
-                      className="w-full rounded-xl bg-green-500 py-4 text-lg font-bold text-white shadow-lg shadow-green-500/20 transition active:scale-95 hover:bg-green-600"
-                      onClick={onClickVerify}
+                      onClick={handleSubmitVerify}
+                      disabled={isVerifying}
+                      className="flex-1 rounded-lg bg-green-500 py-3 font-bold text-white shadow-md active:scale-95 disabled:bg-gray-400"
                     >
-                      📷 인증하기
+                      {isVerifying ? "전송 중..." : "제출하기"}
                     </button>
-                  </>
-                )}
-             </div>
-           ) : (
+                    <button
+                      onClick={() => { setPreviewUrl(null); setVerifyImage(null); }}
+                      className="rounded-lg bg-gray-200 px-4 py-3 font-bold text-gray-600 active:scale-95"
+                    >
+                      취소
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* 2. 인증하기 버튼 (파일 선택 전) */}
+              {!previewUrl && (
+                <>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                  />
+                  <button
+                    className="w-full rounded-xl bg-green-500 py-4 text-lg font-bold text-white shadow-lg shadow-green-500/20 transition active:scale-95 hover:bg-green-600"
+                    onClick={onClickVerify}
+                  >
+                    📷 인증하기
+                  </button>
+                </>
+              )}
+            </div>
+          ) : (
             <>
               <button
                 onClick={handleJoin}
                 disabled={isJoining} // 처리 중 클릭 방지
                 className={`w-full rounded-xl py-4 text-lg font-bold text-white shadow-lg transition active:scale-95
-                  ${isJoining 
-                    ? "bg-gray-400 cursor-not-allowed" 
+                  ${isJoining
+                    ? "bg-gray-400 cursor-not-allowed"
                     : "bg-slate-900 hover:bg-slate-800 shadow-slate-900/20"
                   }
                 `}

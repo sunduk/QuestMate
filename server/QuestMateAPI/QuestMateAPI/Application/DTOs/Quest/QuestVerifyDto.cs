@@ -26,4 +26,43 @@ namespace QuestMateAPI.Application.DTOs.Quest
         public int TargetCount { get; set; }  // 목표 횟수
         public bool IsCompleted { get; set; } // 이번 인증으로 퀘스트 완료(졸업) 했는지?
     }
+
+    // [요청] 인증샷 삭제 요청
+    public class QuestVerifyDeleteRequestDto
+    {
+        [Required]
+        public long QuestId { get; set; }
+
+        [Required]
+        public long VerificationId { get; set; }
+    }
+
+    // [응답] 인증샷 삭제 결과
+    public class QuestVerifyDeleteResultDto
+    {
+        public bool Success { get; set; }
+        public string? Error { get; set; }
+    }
+
+    // [요청] 인증샷 수정 요청
+    public class QuestVerifyUpdateRequestDto
+    {
+        [Required]
+        public long QuestId { get; set; }
+
+        [Required]
+        public long VerificationId { get; set; }
+
+        public string? Comment { get; set; } // 수정할 코멘트 (선택)
+
+        public IFormFile? Image { get; set; } // 수정할 이미지 파일 (선택)
+    }
+
+    // [응답] 인증샷 수정 결과
+    public class QuestVerifyUpdateResultDto
+    {
+        public bool Success { get; set; }
+        public string? Error { get; set; }
+        public string? UpdatedImageUrl { get; set; } // 수정된 이미지 URL
+    }
 }

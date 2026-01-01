@@ -99,7 +99,14 @@ namespace QuestMateAPI.Application.Services
                     };
                 }
 
-                // 3. 성공 응답
+                // [추가] 3. 인증샷 목록 가져오기
+                var verifications = await _repository.GetQuestVerificationsAsync(questId);
+
+                // [추가] 4. QuestDto에 인증샷 목록 할당
+                questDto.Verifications = verifications.ToList();
+
+
+                // 5. 성공 응답
                 return new QuestDetailResultDto
                 {
                     Success = true,
@@ -108,7 +115,7 @@ namespace QuestMateAPI.Application.Services
             }
             catch (Exception ex)
             {
-                // 4. 예외 처리
+                // 6. 예외 처리
                 //_logger.LogError(ex, "GetQuestDetail Failed. QuestId: {QuestId}", questId);
 
                 return new QuestDetailResultDto
@@ -178,7 +185,7 @@ namespace QuestMateAPI.Application.Services
                 // 2. 저장 경로 설정
                 string webRootPath = _environment.WebRootPath;
 
-                // 만약 wwwroot가 없어서 null이면, 수동으로 경로를 잡아줍니다.
+                // 만약 wwwroot가 없어 null 이면, 수동으로 경로를 잡아줍니다.
                 if (string.IsNullOrEmpty(webRootPath))
                 {
                     // ContentRootPath는 실행 파일이 있는 곳 (프로젝트 루트)
@@ -222,6 +229,74 @@ namespace QuestMateAPI.Application.Services
             {
                 //_logger.LogError(ex, "Verify Failed User:{UserId} Quest:{QuestId}", userId, dto.QuestId);
                 return new QuestVerifyResultDto { Success = false, Error = "INTERNAL_SERVER_ERROR" };
+            }
+        }
+
+        public async Task<QuestVerifyDeleteResultDto> DeleteVerificationAsync(long userId, QuestVerifyDeleteRequestDto dto)
+        {
+            try
+            {
+                string error = await _repository.DeleteVerificationAsync(dto.QuestId, dto.VerificationId, userId);
+
+                if (error != null)
+                {
+                    return new QuestVerifyDeleteResultDto { Success = false, Error = error };
+                }
+
+                return new QuestVerifyDeleteResultDto { Success = true };
+            }
+            catch (Exception ex)
+            {
+                return new QuestVerifyDeleteResultDto { Success = false, Error = "INTERNAL_SERVER_ERROR" };
+            }
+        }
+
+        public async Task<QuestVerifyUpdateResultDto> UpdateVerificationAsync(long userId, QuestVerifyUpdateRequestDto dto)
+        {
+            try
+            {
+                string? imageUrl = null;
+
+                // 1. 파일 업로드 처리 (선택적)
+                if (dto.Image != null && dto.Image.Length > 0)
+                {
+                    var ext = Path.GetExtension(dto.Image.FileName).ToLower();
+                    if (ext != ".jpg" && ext != ".png" && ext != ".jpeg")
+                    {
+                        return new QuestVerifyUpdateResultDto { Success = false, Error = "INVALID_IMAGE_TYPE" };
+                    }
+
+                    string webRootPath = _environment.WebRootPath ?? Path.Combine(_environment.ContentRootPath, "wwwroot");
+                    string datePath = DateTime.Now.ToString("yyyyMMdd");
+                    string uploadsFolder = Path.Combine(webRootPath, "uploads", datePath);
+
+                    if (!Directory.Exists(uploadsFolder))
+                        Directory.CreateDirectory(uploadsFolder);
+
+                    string uniqueFileName = $"{Guid.NewGuid()}{ext}";
+                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await dto.Image.CopyToAsync(fileStream);
+                    }
+
+                    imageUrl = $"/uploads/{datePath}/{uniqueFileName}";
+                }
+
+                // 2. Repository 호출
+                string error = await _repository.UpdateVerificationAsync(dto.QuestId, dto.VerificationId, userId, dto.Comment, imageUrl);
+
+                if (error != null)
+                {
+                    return new QuestVerifyUpdateResultDto { Success = false, Error = error };
+                }
+
+                return new QuestVerifyUpdateResultDto { Success = true, UpdatedImageUrl = imageUrl };
+            }
+            catch (Exception ex)
+            {
+                return new QuestVerifyUpdateResultDto { Success = false, Error = "INTERNAL_SERVER_ERROR" };
             }
         }
     }
