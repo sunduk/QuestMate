@@ -24,17 +24,24 @@ export const leaveQuest = async (questId: number) => {
 // ----------------------------------------------------------------------
 // [인증샷 CRUD]
 // ----------------------------------------------------------------------
-export const uploadVerification = async (questId: number, image: File, comment: string) => {
+export const uploadVerification = async (
+  questId: number,
+  image: File | null | undefined,
+  comment: string
+) => {
   const formData = new FormData();
   formData.append("QuestId", questId.toString());
   formData.append("Comment", comment || "");
-  formData.append("Image", image);
+  if (image) {
+    formData.append("Image", image);
+  }
 
   const response = await api.post("/quest/verify", formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return response.data;
 };
+
 
 export const updateVerification = async (
   questId: number,

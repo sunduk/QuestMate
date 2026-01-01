@@ -5,6 +5,7 @@ interface VerificationFeedProps {
   editingVerifyId: number | null;
   editingComment: string;
   editingPreviewUrl: string | null;
+  editingRemovedImage: boolean;
   deletingVerifyId: number | null;
   onStartEdit: (v: VerificationViewModel) => void;
   onCancelEdit: () => void;
@@ -12,6 +13,7 @@ interface VerificationFeedProps {
   onDelete: (id: number) => void;
   onEditCommentChange: (comment: string) => void;
   onEditImageChange: (file: File) => void;
+  onRemoveEditImage?: () => void;
 }
 
 export const VerificationFeed = ({
@@ -19,6 +21,7 @@ export const VerificationFeed = ({
   editingVerifyId,
   editingComment,
   editingPreviewUrl,
+  editingRemovedImage,
   deletingVerifyId,
   onStartEdit,
   onCancelEdit,
@@ -26,6 +29,7 @@ export const VerificationFeed = ({
   onDelete,
   onEditCommentChange,
   onEditImageChange,
+  onRemoveEditImage,
 }: VerificationFeedProps) => {
   if (verifications.length === 0) {
     return (
@@ -76,15 +80,35 @@ export const VerificationFeed = ({
 
           {/* 인증 이미지 */}
           <div className="relative aspect-video w-full bg-gray-100">
-            <img
-              src={editingVerifyId === v.id ? editingPreviewUrl || v.imageUrl : v.imageUrl}
-              alt="Verification"
-              className="h-full w-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLImageElement).src =
-                  "https://via.placeholder.com/400x225?text=Image+Not+Found";
-              }}
-            />
+            {(editingVerifyId === v.id && editingRemovedImage) ||
+            !(
+              editingVerifyId === v.id
+                ? editingPreviewUrl || v.imageUrl
+                : v.imageUrl
+            ) ? (
+              <div className="w-full h-full flex items-center justify-center text-sm text-slate-400">이미지 없음</div>
+            ) : (
+              <img
+                src={editingVerifyId === v.id ? editingPreviewUrl || v.imageUrl : v.imageUrl}
+                alt="Verification"
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src =
+                    "https://via.placeholder.com/400x225?text=Image+Not+Found";
+                }}
+              />
+            )}
+
+            {/* 이미지 삭제 버튼 */}
+            {editingVerifyId === v.id && (
+              <button
+                onClick={onRemoveEditImage}
+                className="absolute top-2 right-2 rounded-md bg-red-800 bg-opacity-70 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-opacity-90 active:scale-95"
+              >
+                이미지 삭제
+              </button>
+            )}
+
             {/* 이미지 변경 버튼 */}
             {editingVerifyId === v.id && (
               <button

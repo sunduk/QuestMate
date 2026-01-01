@@ -58,6 +58,7 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
               editingVerifyId={verification.editingVerifyId}
               editingComment={verification.editingComment}
               editingPreviewUrl={verification.editingPreviewUrl}
+              editingRemovedImage={verification.editingRemovedImage}
               deletingVerifyId={verification.deletingVerifyId}
               onStartEdit={verification.startEdit}
               onCancelEdit={verification.cancelEdit}
@@ -65,6 +66,7 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
               onDelete={verification.handleDelete}
               onEditCommentChange={verification.setEditingComment}
               onEditImageChange={verification.handleEditImageChange}
+              onRemoveEditImage={verification.handleRemoveEditImage}
             />
           </div>
 

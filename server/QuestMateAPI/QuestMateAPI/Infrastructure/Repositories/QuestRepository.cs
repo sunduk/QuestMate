@@ -283,7 +283,7 @@ namespace QuestMateAPI.Infrastructure.Repositories
             }
         }
 
-        public async Task<(int currentCount, bool isSuccess)> VerifyQuestAsync(long questId, long userId, string imageUrl, string? comment)
+        public async Task<(int currentCount, bool isSuccess)> VerifyQuestAsync(long questId, long userId, string? imageUrl, string? comment)
         {
             using var conn = _context.CreateConnection();
             if (conn.State != System.Data.ConnectionState.Open) conn.Open();
@@ -406,6 +406,18 @@ namespace QuestMateAPI.Infrastructure.Repositories
             }
         }
 
+        public async Task<QuestVerification?> GetVerificationByIdAsync(long verificationId)
+        {
+            using var conn = _context.CreateConnection();
+
+            var sql = @"
+                SELECT *
+                FROM quest_verification
+                WHERE id = @Id";
+
+            return await conn.QuerySingleOrDefaultAsync<QuestVerification>(sql, new { Id = verificationId });
+        }
+
         public async Task<string> UpdateVerificationAsync(long questId, long verificationId, long userId, string? comment, string? imageUrl)
         {
             using var conn = _context.CreateConnection();
@@ -426,7 +438,7 @@ namespace QuestMateAPI.Infrastructure.Repositories
                 await conn.ExecuteAsync(@"
                     UPDATE quest_verification
                     SET comment = COALESCE(@Comment, comment),
-                        image_url = COALESCE(@ImageUrl, image_url),
+                        image_url = @ImageUrl,
                         created_at = UTC_TIMESTAMP()
                     WHERE id = @Id",
                     new { Id = verificationId, Comment = comment, ImageUrl = imageUrl }, transaction: trans);

@@ -11,8 +11,7 @@ namespace QuestMateAPI.Application.DTOs.Quest
 
         public string? Comment { get; set; } // "오늘 운동 완료!" 같은 한마디
 
-        [Required]
-        public IFormFile Image { get; set; } // ★ 핵심: 업로드된 파일 바이너리
+        public IFormFile? Image { get; set; } // 업로드된 파일 바이너리 (선택)
     }
 
     // [응답] 결과 패킷

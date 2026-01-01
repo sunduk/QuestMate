@@ -18,6 +18,7 @@ export const useQuestVerification = (
   const [editingImage, setEditingImage] = useState<File | null>(null);
   const [editingPreviewUrl, setEditingPreviewUrl] = useState<string | null>(null);
   const [editingComment, setEditingComment] = useState<string>("");
+  const [editingRemovedImage, setEditingRemovedImage] = useState<boolean>(false);
 
   // 삭제
   const [deletingVerifyId, setDeletingVerifyId] = useState<number | null>(null);
@@ -39,8 +40,9 @@ export const useQuestVerification = (
   };
 
   const handleSubmitVerify = async () => {
-    if (!quest || !verifyImage) return;
-    if (!confirm("이 사진으로 인증하시겠습니까?")) return;
+    if (!quest) return;
+    const confirmMsg = verifyImage ? "이 사진으로 인증하시겠습니까?" : "사진 없이 인증하시겠습니까?";
+    if (!confirm(confirmMsg)) return;
 
     setIsVerifying(true);
 
@@ -74,6 +76,7 @@ export const useQuestVerification = (
     setEditingComment(verification.comment);
     setEditingPreviewUrl(verification.imageUrl);
     setEditingImage(null);
+    setEditingRemovedImage(false);
   };
 
   const cancelEdit = () => {
@@ -81,6 +84,7 @@ export const useQuestVerification = (
     setEditingImage(null);
     setEditingPreviewUrl(null);
     setEditingComment("");
+    setEditingRemovedImage(false);
   };
 
   const handleEditImageChange = (file: File) => {
@@ -90,6 +94,14 @@ export const useQuestVerification = (
     }
     setEditingImage(file);
     setEditingPreviewUrl(URL.createObjectURL(file));
+    setEditingRemovedImage(false);
+  };
+
+  // 편집 중인 이미지 제거 (미리보기/파일 초기화)
+  const handleRemoveEditImage = () => {
+    setEditingImage(null);
+    setEditingPreviewUrl(null);
+    setEditingRemovedImage(true);
   };
 
   const handleSubmitEdit = async () => {
@@ -116,7 +128,7 @@ export const useQuestVerification = (
                 ? {
                     ...v,
                     comment: editingComment,
-                    imageUrl: editingPreviewUrl || v.imageUrl,
+                    imageUrl: editingRemovedImage ? "" : editingPreviewUrl || v.imageUrl,
                   }
                 : v
             ),
@@ -184,10 +196,12 @@ export const useQuestVerification = (
     editingVerifyId,
     editingComment,
     editingPreviewUrl,
+    editingRemovedImage,
     setEditingComment,
     startEdit,
     cancelEdit,
     handleEditImageChange,
+    handleRemoveEditImage,
     handleSubmitEdit,
 
     // 삭제
