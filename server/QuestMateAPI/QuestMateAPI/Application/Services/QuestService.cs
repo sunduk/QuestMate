@@ -3,16 +3,19 @@ using QuestMateAPI.Application.DTOs.Quest;
 using QuestMateAPI.Application.Interfaces.Repositories;
 using QuestMateAPI.Application.Security;
 using QuestMateAPI.Domain.Entities;
+using Microsoft.AspNetCore.Hosting; // IWebHostEnvironment 사용용
 
 namespace QuestMateAPI.Application.Services
 {
     public class QuestService : IQuestService
     {
         private readonly IQuestRepository _repository;
+        private readonly IWebHostEnvironment _environment; // 웹 서버 환경 정보 (경로 찾기용)
 
-        public QuestService(IQuestRepository repository)
+        public QuestService(IQuestRepository repository, IWebHostEnvironment environment)
         {
             _repository = repository;
+            _environment = environment;
         }
 
         public async Task<CreateQuestResultDto> CreateQuestAsync(long userId, CreateQuestRequestDto dto)
@@ -151,6 +154,75 @@ namespace QuestMateAPI.Application.Services
                 Success = true,
                 Data = null // 데이터 없음 (클라도 안 씀)
             };
+        }
+
+        public async Task<QuestVerifyResultDto> VerifyQuestAsync(long userId, QuestVerifyRequestDto dto)
+        {
+            try
+            {
+                // 1. 파일 유효성 검사 (방어 코드)
+                if (dto.Image == null || dto.Image.Length == 0)
+                {
+                    return new QuestVerifyResultDto { Success = false, Error = "NO_FILE" };
+                }
+
+                // 확장자 체크 (이미지만 허용)
+                var ext = Path.GetExtension(dto.Image.FileName).ToLower();
+                if (ext != ".jpg" && ext != ".png" && ext != ".jpeg")
+                {
+                    return new QuestVerifyResultDto { Success = false, Error = "INVALID_IMAGE_TYPE" };
+                }
+
+                // 2. 저장 경로 설정 (wwwroot/uploads/yyyyMMdd/)
+                // 날짜별로 폴더를 나누면 관리가 편합니다.
+                // 2. 저장 경로 설정
+                string webRootPath = _environment.WebRootPath;
+
+                // 만약 wwwroot가 없어서 null이면, 수동으로 경로를 잡아줍니다.
+                if (string.IsNullOrEmpty(webRootPath))
+                {
+                    // ContentRootPath는 실행 파일이 있는 곳 (프로젝트 루트)
+                    webRootPath = Path.Combine(_environment.ContentRootPath, "wwwroot");
+                }
+
+                string datePath = DateTime.Now.ToString("yyyyMMdd");
+                string uploadsFolder = Path.Combine(webRootPath, "uploads", datePath);
+
+                // 폴더 없으면 생성 (Directory.CreateDirectory)
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                // 3. 유니크 파일명 생성 (Guid + 확장자)
+                string uniqueFileName = $"{Guid.NewGuid()}{ext}";
+                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                // 4. 디스크에 파일 쓰기 (Stream Copy)
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await dto.Image.CopyToAsync(fileStream);
+                }
+
+                // 웹에서 접근 가능한 URL 만들기 (예: /uploads/20260101/guid.jpg)
+                // 백슬래시(\)를 슬래시(/)로 바꿔야 웹 URL 표준이 됩니다.
+                string imageUrl = $"/uploads/{datePath}/{uniqueFileName}";
+
+                // 5. DB 업데이트 (Repository 호출)
+                // (currentCount, isSuccess) 튜플을 리턴받음
+                var result = await _repository.VerifyQuestAsync(dto.QuestId, userId, imageUrl, dto.Comment);
+
+                return new QuestVerifyResultDto
+                {
+                    Success = true,
+                    ImageUrl = imageUrl,
+                    CurrentCount = result.currentCount,
+                    IsCompleted = result.isSuccess
+                };
+            }
+            catch (Exception ex)
+            {
+                //_logger.LogError(ex, "Verify Failed User:{UserId} Quest:{QuestId}", userId, dto.QuestId);
+                return new QuestVerifyResultDto { Success = false, Error = "INTERNAL_SERVER_ERROR" };
+            }
         }
     }
 }

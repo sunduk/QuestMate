@@ -118,6 +118,9 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+// [필수] 이 코드가 있어야 wwwroot 폴더가 웹으로 노출됩니다.
+app.UseStaticFiles();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

@@ -115,5 +115,29 @@ namespace QuestMateAPI.Controllers
             if (!result.Success) return BadRequest(result);
             return Ok(result);
         }
+
+        [HttpPost("verify")]
+        [Authorize] // 로그인 필수
+        public async Task<IActionResult> Verify([FromForm] QuestVerifyRequestDto dto) // ★ 핵심: [FromForm] 사용
+        {
+            // 1. 내 ID 파싱 (보안)
+            var userIdStr = User.FindFirst("uid")?.Value;
+            if (!long.TryParse(userIdStr, out long userId))
+            {
+                return Unauthorized();
+            }
+
+            // 2. 서비스 호출 (파일 저장 -> DB 기록)
+            var result = await _questService.VerifyQuestAsync(userId, dto);
+
+            // 3. 결과 처리
+            if (!result.Success)
+            {
+                // 에러 메시지에 따라 상태코드 분기 가능
+                return BadRequest(result);
+            }
+
+            return Ok(result);
+        }
     }
 }

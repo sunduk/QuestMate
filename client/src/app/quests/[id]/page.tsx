@@ -1,6 +1,6 @@
 "use client";
 
-import React, { use, useEffect, useState, useCallback } from "react";
+import React, { use, useEffect, useState, useCallback, useRef } from "react";
 import api from "../../../lib/axios";
 import { useAuthStore } from "../../../store/useAuthStore";
 import { useRouter } from "next/navigation";
@@ -63,6 +63,94 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
   const [isJoining, setIsJoining] = useState(false); // 참가 처리 중 상태
   const [error, setError] = useState<string | null>(null);
   const [isLeaving, setIsLeaving] = useState(false); // 탈퇴 처리 중 상태 추가
+
+  // ★ [인증 관련 State 추가]
+  const [isVerifying, setIsVerifying] = useState(false); // 업로드 진행 중
+  const [verifyImage, setVerifyImage] = useState<File | null>(null); // 선택한 파일 객체
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null); // 미리보기 URL
+  const [comment, setComment] = useState(""); // 한줄 소감
+
+  // 파일 선택창 트리거용 Ref
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const onClickVerify = () => {
+    // 숨겨진 input을 대신 클릭해줌
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // 이미지 파일인지 체크
+    if (!file.type.startsWith("image/")) {
+      alert("이미지 파일만 업로드 가능합니다.");
+      return;
+    }
+
+    setVerifyImage(file);
+    
+    // 브라우저 메모리에 임시 URL 생성 (미리보기용)
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+  };
+
+  // ----------------------------------------------------------------------
+  // [Event] 인증 제출 (Upload)
+  // ----------------------------------------------------------------------
+  const handleSubmitVerify = async () => {
+    if (!quest || !verifyImage) return;
+
+    if (!confirm("이 사진으로 인증하시겠습니까?")) return;
+
+    setIsVerifying(true);
+
+    try {
+      // 1. FormData 생성
+      const formData = new FormData();
+      formData.append("QuestId", quest.id.toString());
+      // 코멘트가 없으면 빈 문자열이라도 보내야 안전할 수 있음 (서버 설정에 따라)
+      formData.append("Comment", comment || ""); 
+      formData.append("Image", verifyImage); 
+
+      // 2. 전송 (★ 여기가 수정됨)
+      // 세 번째 인자로 설정 객체(Config)를 넘겨서 Content-Type을 덮어씁니다.
+      const response = await api.post("/quest/verify", formData, {
+        headers: {
+          // 이렇게 명시하면 Axios가 "아, 폼 데이터구나" 하고 
+          // 브라우저가 자동으로 생성하는 boundary(구분자)를 포함한 정확한 헤더를 사용하게 해줍니다.
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      
+      const result = response.data;
+
+      if (result.success) {
+        alert("인증 완료! 오늘도 한 걸음 성장하셨네요! 💪");
+        
+        // 3. UI 정리 (미리보기 닫기)
+        setVerifyImage(null);
+        setPreviewUrl(null);
+        setComment("");
+
+        // 4. 데이터 갱신 (내 카운트 올라간 거 반영)
+        // (단순히 카운트만 올리는게 아니라, 서버 데이터를 다시 불러오는게 제일 안전함)
+        // 여기서는 편의상 리로드 함수를 호출하거나, 직접 state를 수정
+        // setQuest(prev => ... ) 로직이 복잡하니 fetchDetail을 다시 부르는게 낫습니다.
+        window.location.reload(); // MVP니까 가장 확실한 방법 (새로고침)
+        
+      } else {
+        alert(result.error || "인증 실패");
+      }
+    } catch (err) {
+      console.error("Verify Failed:", err);
+      if (isAxiosError(err)) {
+        alert(`업로드 실패: ${err.response?.data?.error || "서버 오류"}`);
+      }
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
 // ----------------------------------------------------------------------
   // [Event] 퀘스트 탈퇴
@@ -316,15 +404,63 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
 
           <hr className="my-6 border-slate-100" />
 
-          {/* 버튼 분기 */}
-          {quest.isJoined ? (
-            <button
-              className="w-full rounded-xl bg-green-500 py-4 text-lg font-bold text-white shadow-lg shadow-green-500/20 transition active:scale-95 hover:bg-green-600"
-              onClick={() => alert("인증 기능은 Day 5에 구현됩니다!")}
-            >
-              📷 인증하기
-            </button>
-          ) : (
+          {/* ★ [수정됨] 하단 버튼 영역 */}
+           {quest.isJoined ? (
+             <div className="flex flex-col gap-4">
+                
+                {/* 1. 인증 미리보기 영역 (파일 선택됐을 때만 보임) */}
+                {previewUrl && (
+                  <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 animate-fade-in-up">
+                    <img 
+                      src={previewUrl} 
+                      alt="Preview" 
+                      className="mb-3 w-full rounded-lg object-cover h-48 border border-gray-200"
+                    />
+                    <input 
+                      type="text"
+                      placeholder="한줄 소감 (선택)"
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 p-2 text-sm outline-none focus:border-green-500"
+                    />
+                    <div className="mt-3 flex gap-2">
+                       <button 
+                         onClick={handleSubmitVerify}
+                         disabled={isVerifying}
+                         className="flex-1 rounded-lg bg-green-500 py-3 font-bold text-white shadow-md active:scale-95 disabled:bg-gray-400"
+                       >
+                         {isVerifying ? "전송 중..." : "제출하기"}
+                       </button>
+                       <button 
+                         onClick={() => { setPreviewUrl(null); setVerifyImage(null); }}
+                         className="rounded-lg bg-gray-200 px-4 py-3 font-bold text-gray-600 active:scale-95"
+                       >
+                         취소
+                       </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. 인증하기 버튼 (파일 선택 전) */}
+                {!previewUrl && (
+                  <>
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      className="hidden" 
+                      accept="image/*"
+                      onChange={handleFileChange}
+                    />
+                    <button
+                      className="w-full rounded-xl bg-green-500 py-4 text-lg font-bold text-white shadow-lg shadow-green-500/20 transition active:scale-95 hover:bg-green-600"
+                      onClick={onClickVerify}
+                    >
+                      📷 인증하기
+                    </button>
+                  </>
+                )}
+             </div>
+           ) : (
             <>
               <button
                 onClick={handleJoin}

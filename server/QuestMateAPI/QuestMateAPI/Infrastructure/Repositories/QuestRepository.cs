@@ -282,5 +282,67 @@ namespace QuestMateAPI.Infrastructure.Repositories
                 return "DB_ERROR";
             }
         }
+
+        public async Task<(int currentCount, bool isSuccess)> VerifyQuestAsync(long questId, long userId, string imageUrl, string? comment)
+        {
+            using var conn = _context.CreateConnection();
+            if (conn.State != System.Data.ConnectionState.Open) conn.Open();
+            using var trans = conn.BeginTransaction();
+
+            try
+            {
+                // 1. 인증 로그 기록 (Insert)
+                await conn.ExecuteAsync(@"
+            INSERT INTO quest_verification (quest_id, user_id, image_url, comment, status, created_at)
+            VALUES (@QId, @UId, @ImgUrl, @Comment, 1, UTC_TIMESTAMP())", // MVP니까 일단 자동 승인(1) 처리
+                    new { QId = questId, UId = userId, ImgUrl = imageUrl, Comment = comment },
+                    transaction: trans);
+
+                // 2. 내 진행도 증가 (Update)
+                await conn.ExecuteAsync(@"
+            UPDATE questmember 
+            SET current_count = current_count + 1 
+            WHERE quest_id = @QId AND user_id = @UId",
+                    new { QId = questId, UId = userId },
+                    transaction: trans);
+
+                // 3. 목표 달성 여부 체크 (퀘스트 목표와 내 현재 횟수 비교)
+                // (게임 로직을 DB 쿼리 안에서 처리)
+                var result = await conn.QuerySingleAsync<dynamic>(@"
+            SELECT 
+                qm.current_count, 
+                q.target_count,
+                qm.is_success
+            FROM questmember qm
+            JOIN quest q ON qm.quest_id = q.id
+            WHERE qm.quest_id = @QId AND qm.user_id = @UId",
+                    new { QId = questId, UId = userId },
+                    transaction: trans);
+
+                int currentCount = result.current_count;
+                int targetCount = result.target_count;
+                bool isSuccess = result.is_success; // MySQL TinyInt
+
+                // 4. 목표 달성 시 성공 처리 (최초 달성 시에만 업데이트)
+                if (!isSuccess && currentCount >= targetCount)
+                {
+                    await conn.ExecuteAsync(@"
+                UPDATE questmember SET is_success = 1 
+                WHERE quest_id = @QId AND user_id = @UId",
+                        new { QId = questId, UId = userId },
+                        transaction: trans);
+
+                    isSuccess = true;
+                }
+
+                trans.Commit();
+                return (currentCount, isSuccess);
+            }
+            catch
+            {
+                trans.Rollback();
+                throw;
+            }
+        }
     }
 }
