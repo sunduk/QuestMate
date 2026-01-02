@@ -28,8 +28,14 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
   if (error || !quest)
     return <div className="p-10 text-center text-red-500">{error || "퀘스트 없음"}</div>;
 
+  const myProgress = quest.participants.find((p) => p.isMe);
+  const isCompleted = myProgress ? myProgress.current >= quest.durationDays : false;
+
   return (
-    <div className="relative h-full w-full bg-gray-50">
+    <div 
+      className="relative h-full w-full bg-gray-50 bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: "url('/bg.png')" }}
+    >
       <div className="absolute inset-0 overflow-y-auto px-6 py-8 pb-24">
         {/* 상단 정보 */}
         <QuestHeader
@@ -42,37 +48,16 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
         />
 
         {/* 메인 카드 */}
-        <section className="rounded-3xl bg-white p-6 shadow-sm border border-gray-100">
+        <section className="rounded-3xl bg-[#fcf6ea] p-6 shadow-sm border border-gray-100">
           {/* 참여자 현황 */}
-          <ParticipantList participants={quest.participants} targetCount={quest.targetCount} />
+          <ParticipantList participants={quest.participants} targetCount={quest.targetCount} durationDays={quest.durationDays} />
 
           <hr className="my-6 border-slate-100" />
-
-          {/* 인증 내역 */}
-          <div className="mb-6">
-            <h3 className="mb-4 text-sm font-bold text-slate-500 uppercase tracking-wider">
-              최근 인증 내역
-            </h3>
-            <VerificationFeed
-              verifications={quest.verifications}
-              editingVerifyId={verification.editingVerifyId}
-              editingComment={verification.editingComment}
-              editingPreviewUrl={verification.editingPreviewUrl}
-              editingRemovedImage={verification.editingRemovedImage}
-              deletingVerifyId={verification.deletingVerifyId}
-              onStartEdit={verification.startEdit}
-              onCancelEdit={verification.cancelEdit}
-              onSubmitEdit={verification.handleSubmitEdit}
-              onDelete={verification.handleDelete}
-              onEditCommentChange={verification.setEditingComment}
-              onEditImageChange={verification.handleEditImageChange}
-              onRemoveEditImage={verification.handleRemoveEditImage}
-            />
-          </div>
 
           {/* 인증하기 / 참가하기 */}
           <VerificationForm
             isJoined={quest.isJoined}
+            isCompleted={isCompleted}
             isJoining={isJoining}
             isVerifying={verification.isVerifying}
             previewUrl={verification.previewUrl}
@@ -92,6 +77,31 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
               verification.setVerifyImage(null);
             }}
           />
+
+          <hr className="my-6 border-slate-100" />
+
+          {/* 인증 내역 */}
+          <div className="mb-6">
+            <h3 className="mb-4 text-sm text-[#472c17] font-bold uppercase tracking-wider">
+              최근 기록
+            </h3>
+            <VerificationFeed
+              verifications={quest.verifications}
+              editingVerifyId={verification.editingVerifyId}
+              editingComment={verification.editingComment}
+              editingPreviewUrl={verification.editingPreviewUrl}
+              editingRemovedImage={verification.editingRemovedImage}
+              deletingVerifyId={verification.deletingVerifyId}
+              onStartEdit={verification.startEdit}
+              onCancelEdit={verification.cancelEdit}
+              onSubmitEdit={verification.handleSubmitEdit}
+              onDelete={verification.handleDelete}
+              onEditCommentChange={verification.setEditingComment}
+              onEditImageChange={verification.handleEditImageChange}
+              onRemoveEditImage={verification.handleRemoveEditImage}
+            />
+          </div>
+
         </section>
       </div>
     </div>

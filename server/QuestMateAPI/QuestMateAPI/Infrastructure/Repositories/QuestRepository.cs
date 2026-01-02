@@ -126,7 +126,7 @@ namespace QuestMateAPI.Infrastructure.Repositories
             NULL AS ProfileImageUrl, -- User 테이블에 컬럼 없으면 NULL 또는 추가 필요
             qm.is_host AS IsHost,
             qm.is_success AS IsSuccess,
-            0 AS CurrentCount -- 아직 인증 구현 전이라 0
+            qm.current_count AS CurrentCount -- 각 유저의 인증 횟수
         FROM QuestMember qm
         JOIN User u ON qm.user_id = u.id
         WHERE qm.quest_id = @QuestId

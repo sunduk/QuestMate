@@ -165,6 +165,9 @@ export const useQuestVerification = (
           return {
             ...prev,
             verifications: prev.verifications.filter((v) => v.id !== verifyId),
+            participants: prev.participants.map((p) =>
+              p.isMe ? { ...p, current: Math.max(0, p.current - 1) } : p
+            ),
           };
         });
       } else {

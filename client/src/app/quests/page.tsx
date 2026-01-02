@@ -128,11 +128,11 @@ export default function QuestListPage() {
 
           {/* 1. 페이지 타이틀 */}
           <h1 className="mb-6 text-2xl font-bold text-slate-800">
-            퀘스트 게시판
+            하루가 쌓여 나를 만듭니다
           </h1>
 
           {/* 2. 카테고리 탭 (Filter Tabs) */}
-          <div className="mb-6 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          {/* <div className="mb-6 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
@@ -148,7 +148,7 @@ export default function QuestListPage() {
                 {cat}
               </button>
             ))}
-          </div>
+          </div> */}
 
           {/* 3. 퀘스트 리스트 (Scroll View) */}
           <div className="flex flex-col gap-4 pb-24">
@@ -167,13 +167,13 @@ export default function QuestListPage() {
                     <p className="text-xs text-slate-500">기간: {quest.duration}</p>
                     <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
                       {/* 참가비가 있으면 표시, 없으면 무료 */}
-                      {quest.fee > 0 ? (
+                      {/* {quest.fee > 0 ? (
                         <span className="text-yellow-600">💰 참가비 {quest.fee} G</span>
                       ) : (
                         <span className="text-green-600">🍀 무료 참여</span>
-                      )}
-                      <span className="text-slate-300">|</span>
-                      <span>👥 {quest.participants}</span>
+                      )} */}
+                      {/* <span className="text-slate-300">|</span> */}
+                      {/* <span>👥 {quest.participants}</span> */}
                     </div>
                   </div>
 
@@ -184,8 +184,8 @@ export default function QuestListPage() {
             {/* 리스트가 비었을 때 처리 */}
             {filteredQuests.length === 0 && (
               <div className="py-10 text-center text-slate-400">
-                해당하는 퀘스트가 없습니다.<br />
-                직접 만들어보세요!
+                아직 남겨진 하루가 없어요.<br />
+                첫 하루를 남겨보세요.
               </div>
             )}
           </div>

@@ -20,16 +20,19 @@ export const QuestHeader = ({
       <div className="mb-4 flex h-24 w-24 items-center justify-center rounded-3xl bg-white shadow-md text-5xl border-2 border-gray-100">
         {icon}
       </div>
-      <h1 className="text-2xl font-black text-slate-800 text-center">{title}</h1>
-      <p className="mt-2 text-sm text-gray-500 text-center px-4 break-keep">{description}</p>
+      <h1 className="text-2xl font-black text-[#5a3616] text-center">{title}</h1>
+      <p className="mt-2 text-sm text-[#796c59] text-center px-4 break-keep">{description}</p>
 
       {isJoined && (
         <button
           onClick={onLeave}
           disabled={isLeaving}
-          className="absolute top-4 right-4 z-10 rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white shadow-md transition active:scale-95 hover:bg-red-700 disabled:bg-gray-400"
+          className="absolute top-4 right-4 z-10 w-20 h-12 flex items-center justify-center transition active:scale-95 hover:brightness-110 disabled:opacity-50 disabled:grayscale"
+          style={{ backgroundImage: "url('/button_delete_feed.png')", backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat' }}
         >
-          {isLeaving ? "처리중..." : "퀘스트 탈퇴"}
+          <span className="text-[13px] font-bold text-[#fffdf2] drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">
+            {isLeaving ? "..." : "삭제"}
+          </span>
         </button>
       )}
     </div>

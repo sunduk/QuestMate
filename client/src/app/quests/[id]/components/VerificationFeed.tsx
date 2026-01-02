@@ -33,9 +33,12 @@ export const VerificationFeed = ({
 }: VerificationFeedProps) => {
   if (verifications.length === 0) {
     return (
-      <div className="py-10 text-center text-gray-400 text-sm bg-gray-50 rounded-2xl border-2 border-dashed border-gray-100">
-        아직 올라온 인증샷이 없습니다.
-        <br />첫 번째 주인공이 되어보세요! 🚀
+      <div className="flex flex-row items-center justify-center py-10 text-[#443321] text-sm bg-[#fef8e8] shadow-lg shadow-amber-900/20 rounded-2xl border-2 border-dashed border-gray-100 gap-4 px-6">
+        <img src="/icon_norecord.png" alt="No records" className="w-15 h-15 opacity-80 shrink-0" />
+        <div className="text-left leading-relaxed">
+          아직 남긴 흔적이 없습니다.
+          <br />사진 한 장, 글 한 줄을 남겨보세요.
+        </div>
       </div>
     );
   }
@@ -46,12 +49,12 @@ export const VerificationFeed = ({
         <div
           key={v.id}
           className={`overflow-hidden rounded-2xl border bg-white shadow-sm transition-all ${
-            editingVerifyId === v.id ? "border-blue-500 ring-4 ring-blue-500/20" : "border-gray-100"
+            editingVerifyId === v.id ? "border-yellow-600 ring-4 ring-yellow-500/40" : "border-[#efceb6]"
           }`}
         >
           {/* 유저 정보 */}
           <div className="flex items-center gap-2 p-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-lg border border-gray-200">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-lg border border-[#929675]">
               {v.userAvatar}
             </div>
             <div className="flex flex-col">
@@ -60,19 +63,25 @@ export const VerificationFeed = ({
             </div>
             {/* 수정/삭제 버튼 */}
             {v.isMine && editingVerifyId !== v.id && (
-              <div className="ml-auto flex gap-2">
+              <div className="ml-auto flex items-center gap-2 h-8">
                 <button
                   onClick={() => onStartEdit(v)}
-                  className="rounded-lg bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-600 transition hover:bg-blue-100 active:scale-95"
+                  className="relative w-15 h-10 flex items-center justify-center transition active:scale-95 hover:brightness-110"
+                  style={{ backgroundImage: "url('/button_edit_feed.png')", backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat' }}
                 >
-                  수정
+                  <span className="text-[13px] font-bold text-[#fffdf2] drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">
+                    수정
+                  </span>
                 </button>
                 <button
                   onClick={() => onDelete(v.id)}
                   disabled={deletingVerifyId === v.id}
-                  className="rounded-lg bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-100 active:scale-95 disabled:opacity-50"
+                  className="relative w-15 h-10 flex items-center justify-center transition active:scale-95 hover:brightness-110 disabled:opacity-50 disabled:grayscale"
+                  style={{ backgroundImage: "url('/button_delete_feed.png')", backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat' }}
                 >
-                  {deletingVerifyId === v.id ? "삭제중" : "삭제"}
+                  <span className="text-[13px] font-bold text-[#fffdf2] drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">
+                    {deletingVerifyId === v.id ? "..." : "삭제"}
+                  </span>
                 </button>
               </div>
             )}
@@ -86,7 +95,9 @@ export const VerificationFeed = ({
                 ? editingPreviewUrl || v.imageUrl
                 : v.imageUrl
             ) ? (
-              <div className="w-full h-full flex items-center justify-center text-sm text-slate-400">이미지 없음</div>
+              <div className="w-full h-full flex items-center justify-center bg-[#fbf6e3]">
+                <img src="/feed_noimage.png" alt="No image" className="w-40 h-40 object-contain opacity-40" />
+              </div>
             ) : (
               <img
                 src={editingVerifyId === v.id ? editingPreviewUrl || v.imageUrl : v.imageUrl}
@@ -103,9 +114,12 @@ export const VerificationFeed = ({
             {editingVerifyId === v.id && (
               <button
                 onClick={onRemoveEditImage}
-                className="absolute top-2 right-2 rounded-md bg-red-800 bg-opacity-70 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-opacity-90 active:scale-95"
+                className="absolute top-2 right-2 w-22 h-10 flex items-center justify-center transition active:scale-95 hover:brightness-110"
+                style={{ backgroundImage: "url('/button_delete_feed.png')", backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat' }}
               >
-                이미지 삭제
+                <span className="text-[12px] font-bold text-[#fffdf2] drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">
+                  이미지 삭제
+                </span>
               </button>
             )}
 
@@ -123,44 +137,61 @@ export const VerificationFeed = ({
                   };
                   fileInput.click();
                 }}
-                className="absolute bottom-2 right-2 rounded-md bg-gray-800 bg-opacity-70 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-opacity-90 active:scale-95"
+                className="absolute bottom-2 right-2 w-15 h-9 flex items-center justify-center transition active:scale-95 hover:brightness-110"
+                style={{ backgroundImage: "url('/button_edit_feed.png')", backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat' }}
               >
-                변경
+                <span className="text-[13px] font-bold text-[#fffdf2] drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">
+                  변경
+                </span>
               </button>
             )}
           </div>
 
-          {/* 코멘트 */}
-          <div className="p-3">
-            {editingVerifyId === v.id ? (
+          {/* 코멘트 및 버튼 영역 */}
+          {editingVerifyId === v.id ? (
+            <div 
+              className="relative w-full bg-[length:100%_100%] bg-no-repeat p-6 space-y-3"
+              style={{ backgroundImage: "url('/feed_comment_bg.png')" }}
+            >
               <textarea
                 value={editingComment ?? ""}
                 onChange={(e) => onEditCommentChange(e.target.value)}
                 placeholder="한줄 소감을 남겨주세요."
-                className="w-full rounded-lg border border-gray-300 p-2 text-sm outline-none focus:border-blue-500"
+                className="w-full rounded-lg border border-[#d6c6ac] bg-white/50 p-2 text-sm outline-none focus:border-[#553b24] text-[#482e17]"
                 rows={2}
               />
-            ) : (
-              v.comment && <p className="text-sm text-slate-600 leading-relaxed">{v.comment}</p>
-            )}
-          </div>
-
-          {/* 제출/취소 버튼 */}
-          {editingVerifyId === v.id && (
-            <div className="flex gap-2 border-t border-gray-100 p-3">
-              <button
-                onClick={onSubmitEdit}
-                className="flex-1 rounded-lg bg-blue-600 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 active:scale-95"
-              >
-                제출
-              </button>
-              <button
-                onClick={onCancelEdit}
-                className="flex-1 rounded-lg bg-gray-200 py-2 text-sm font-bold text-gray-700 transition hover:bg-gray-300 active:scale-95"
-              >
-                취소
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={onSubmitEdit}
+                  className="relative flex-1 h-10 flex items-center justify-center transition active:scale-95 hover:brightness-110"
+                  style={{ backgroundImage: "url('/button_edit_feed_wide.png')", backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat' }}
+                >
+                  <span className="text-sm font-bold text-[#fffdf2] drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">
+                    기록
+                  </span>
+                </button>
+                <button
+                  onClick={onCancelEdit}
+                  className="relative flex-1 h-10 flex items-center justify-center transition active:scale-95 hover:brightness-110"
+                  style={{ backgroundImage: "url('/button_edit_feed_cancel_wide.png')", backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat' }}
+                >
+                  <span className="text-sm font-bold text-[#fffdf2] drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">
+                    취소
+                  </span>
+                </button>
+              </div>
             </div>
+          ) : (
+            v.comment && (
+              <div 
+                className="relative w-full bg-[length:100%_100%] bg-no-repeat p-6 flex items-center max-h-[55px]"
+                style={{ backgroundImage: "url('/feed_comment_bg.png')" }}
+              >
+                <p className="text-sm font-medium text-[#482e17] leading-relaxed">
+                  {v.comment}
+                </p>
+              </div>
+            )
           )}
         </div>
       ))}

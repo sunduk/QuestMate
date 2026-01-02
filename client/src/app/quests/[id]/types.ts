@@ -62,6 +62,7 @@ export interface QuestViewModel {
   description: string;
   icon: string;
   targetCount: number;
+  durationDays: number;
   entryFee: number;
   isJoined: boolean;
   participants: ParticipantViewModel[];
