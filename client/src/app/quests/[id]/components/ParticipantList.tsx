@@ -25,17 +25,15 @@ export const ParticipantList = ({ participants, targetCount, durationDays }: Par
             <div key={index} className="flex items-center gap-3">
               <div className="relative">
                 <div
-                  className={`flex h-12 w-12 items-center justify-center rounded-full text-2xl shadow-sm border-2 ${
-                    p.isMe ? "bg-yellow-50 border-[#929675]" : "bg-gray-50 border-gray-100"
+                  className={`flex h-15 w-15 items-center justify-center text-2xl ${
+                    isCompleted 
+                      ? "bg-contain bg-center bg-no-repeat border-none" 
+                      : "rounded-full border-2 " + (p.isMe ? "bg-yellow-50 border-[#929675]" : "bg-gray-50 border-gray-100")
                   }`}
+                  style={isCompleted ? { backgroundImage: "url('/quest_icon_gold_border_finish.png')" } : {}}
                 >
                   {p.avatar}
                 </div>
-                {isCompleted && (
-                  <div className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white ring-2 ring-white">
-                    V
-                  </div>
-                )}
               </div>
               <div className="flex-1 flex flex-col gap-1.5">
                 <div className="flex justify-between items-end">
@@ -44,7 +42,7 @@ export const ParticipantList = ({ participants, targetCount, durationDays }: Par
                     {p.isMe && <span className="text-xs text-yellow-500 font-normal">(나)</span>}
                   </span>
                   <span className="text-xs font-medium text-[#796c59]">
-                    {p.current} / {durationDays}회
+                    {p.current} / {durationDays}일
                   </span>
                 </div>
                 <div 

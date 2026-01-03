@@ -11,6 +11,7 @@
         public int MaxMemberCount { get; set; }
         public string? ImageUrl { get; set; }
         public int Status { get; set; }
+        public int hostUserVerificationCount { get; set; }
     }
 
     // [응답] 퀘스트 목록용 패킷

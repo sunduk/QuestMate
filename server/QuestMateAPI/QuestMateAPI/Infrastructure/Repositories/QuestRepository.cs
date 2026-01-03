@@ -85,21 +85,22 @@ namespace QuestMateAPI.Infrastructure.Repositories
         {
             using var conn = _context.CreateConnection();
 
-            // Alias(AS)를 써서 C# 프로퍼티명과 맞춰줍니다.
             var sql = @"
             SELECT 
-                id AS Id,
-                title AS Title,
-                category AS Category,
-                duration_days AS DurationDays,
-                entry_fee AS EntryFee,
-                current_member_count AS CurrentMemberCount,
-                max_member_count AS MaxMemberCount,
-                image_url AS ImageUrl,
-                status AS Status
-            FROM Quest
-            WHERE status = 0 -- 모집중(0) 상태인 것만
-            ORDER BY created_at DESC";
+                q.id AS Id,
+                q.title AS Title,
+                q.category AS Category,
+                q.duration_days AS DurationDays,
+                q.entry_fee AS EntryFee,
+                q.current_member_count AS CurrentMemberCount,
+                q.max_member_count AS MaxMemberCount,
+                q.image_url AS ImageUrl,
+                q.status AS Status,
+                COALESCE(qm.current_count, 0) AS hostUserVerificationCount
+            FROM Quest q
+            LEFT JOIN QuestMember qm ON q.id = qm.quest_id AND q.host_user_id = qm.user_id
+            WHERE q.status = 0
+            ORDER BY q.created_at DESC";
 
             return await conn.QueryAsync<QuestItemDto>(sql);
         }

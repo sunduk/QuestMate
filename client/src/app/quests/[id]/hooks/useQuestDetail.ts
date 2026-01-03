@@ -13,12 +13,12 @@ const mapDataToViewModel = (data: QuestDetailDto, myId?: number): QuestViewModel
   return {
     id: data.id,
     title: data.title,
-    description: `${data.durationDays}일 동안 남기는 기록입니다.`,
+    description: `${data.durationDays}일 동안 남기는 노트입니다.`,
     targetCount: data.targetCount,
     durationDays: data.durationDays,
     entryFee: data.entryFee,
     isJoined: data.isJoined,
-    icon: data.category === 0 ? "🏋️" : data.category === 1 ? "📚" : "🌱",
+    icon: data.category === 0 ? "/icon_health.png" : data.category === 1 ? "/icon_study.png" : "/icon_living.png",
 
     participants: data.participants.map((p) => ({
       userId: p.userId,

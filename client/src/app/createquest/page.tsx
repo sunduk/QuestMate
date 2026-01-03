@@ -8,10 +8,10 @@ import { isAxiosError } from "axios";
 
 // 카테고리 매핑 (서버: 0=운동, 1=공부, 2=생활, 3=기타 가정)
 const CATEGORIES = [
-  { id: 0, label: "운동", icon: "💪" },
-  { id: 1, label: "공부", icon: "📚" },
-  { id: 2, label: "생활", icon: "🌱" },
-  { id: 3, label: "기타", icon: "🎸" },
+  { id: 0, label: "운동", icon: "/icon_health.png" },
+  { id: 1, label: "공부", icon: "/icon_study.png" },
+  { id: 2, label: "생활", icon: "/icon_living.png" },
+  { id: 3, label: "기타", icon: "/icon_etc.png" },
 ];
 
 export default function CreateQuestPage() {
@@ -92,12 +92,15 @@ export default function CreateQuestPage() {
   };
 
   return (
-    <div className="relative flex min-h-full flex-col px-6 py-8 pb-24">
+    <div 
+      className="relative flex min-h-full flex-col px-6 py-8 pb-24 bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: "url('/bg.png')" }}
+    >
       
       {/* 1. 타이틀 영역 */}
       <div className="mb-8 flex flex-col items-center">
-        <h2 className="text-3xl font-bold text-yellow-500 tracking-tight drop-shadow-sm mt-1">
-          기록 만들기
+        <h2 className="text-3xl font-bold text-[#472c13] tracking-tight drop-shadow-sm mt-1">
+          노트 만들기
         </h2>
       </div>
 
@@ -106,7 +109,7 @@ export default function CreateQuestPage() {
         
         {/* 제목 */}
         <div>
-          <label className="mb-2 block text-sm font-bold text-gray-700">이번 며칠 동안 남기고 싶은 것</label>
+          <label className="mb-2 block text-sm font-bold text-[#4d2d12]">이번 며칠 동안 남기고 싶은 것</label>
           <input
             ref={titleRef}
             type="text"
@@ -116,32 +119,32 @@ export default function CreateQuestPage() {
             placeholder="예: 매일 아침 5분 글쓰기"
             className={`w-full rounded-xl border px-4 py-3 text-gray-800 outline-none transition 
               ${titleError 
-                ? "border-red-200 bg-red-50 focus:ring-2 focus:ring-red-200" 
-                : "border-gray-200 bg-gray-50 focus:border-yellow-400 focus:bg-white focus:ring-2 focus:ring-yellow-200"
+                ? "border-[#472c13] bg-[#faf3cd] focus:ring-2 focus:ring-red-200" 
+                : "border-gray-200 bg-gray-50 focus:border-yellow-400 focus:bg-white focus:ring-1 focus:ring-[#8c7866]"
               }
             `}
           />
           {titleError && (
-            <p className="mt-1 text-xs font-medium text-red-500">제목을 입력해 주세요</p>
+            <p className="mt-1 text-xs font-medium text-[#8c3b25]">제목을 입력해 주세요</p>
           )}
         </div>
 
         {/* 카테고리 (탭 스타일) */}
         <div>
           <label className="mb-2 block text-sm font-bold text-gray-700">카테고리</label>
-          <div className="flex w-full gap-2 rounded-xl bg-gray-100 p-1">
+          <div className="flex w-full gap-2 rounded-xl p-1">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => handleCategoryChange(cat.id)}
-                className={`flex-1 rounded-lg py-2 text-sm font-bold transition-all duration-200
+                className={`flex-1 rounded-lg w-15 h-15 py-2 text-sm font-bold transition-all duration-200 border
                   ${formData.category === cat.id 
-                    ? "bg-green-500 text-white shadow-md transform scale-105" // 선택됨 (이미지의 초록색)
-                    : "text-gray-500 hover:bg-gray-200"
+                    ? "bg-[#aeca9f] border-1 border-[#839878] text-white shadow-md transform scale-105" // 선택됨 (이미지의 초록색)
+                    : "text-gray-500 bg-[#fdfbf0] hover:bg-[#f6f2dd] border-gray-200"
                   }
                 `}
               >
-                <span className="mr-1">{cat.icon}</span>
+                <img src={cat.icon} alt={cat.label} className="inline-block mr-1 w-10 h-10" />
                 {cat.label}
               </button>
             ))}
@@ -178,8 +181,8 @@ export default function CreateQuestPage() {
                   onClick={() => handleDurationChange(day)}
                   className={`rounded-xl py-2 text-sm font-bold transition-all duration-200 border
                     ${formData.durationDays === day 
-                      ? "bg-yellow-500 text-white border-yellow-500 shadow-md" 
-                      : "bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"
+                      ? "bg-[#aeca9f] text-white border-[#839878] shadow-md" 
+                      : "bg-[#fdfbf0] text-gray-500 border-gray-200 hover:bg-[#f6f2dd]"
                     }
                   `}
                 >
@@ -244,14 +247,10 @@ export default function CreateQuestPage() {
         <button
           onClick={handleSubmit}
           disabled={isLoading}
-          className={`w-full rounded-xl py-4 text-xl font-bold text-white shadow-lg transition active:scale-95
-            ${isLoading 
-              ? "bg-gray-400 cursor-not-allowed" 
-              : "bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 shadow-yellow-500/30"
-            }
-          `}
+          className={`w-full rounded-full py-4 text-xl font-bold text-[#5a3e24] shadow-lg transition active:scale-95 bg-cover bg-center bg-no-repeat border-none`}
+          style={{ backgroundImage: "url('/button_write_blank.png')" }}
         >
-          {isLoading ? "생성 중..." : `${formData.durationDays}일 기록 시작하기`}
+          {isLoading ? "생성 중..." : `${formData.durationDays}일 노트 시작하기`}
         </button>
 
         <div className="mt-10 text-center text-sm text-gray-500">
