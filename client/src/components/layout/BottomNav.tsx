@@ -13,7 +13,7 @@ export default function BottomNav() {
 
   return (
     // fixed bottom-0: 화면 하단에 무조건 고정
-    <nav className="fixed bottom-0 z-50 flex h-16 w-full max-w-md items-center justify-around border-t border-[#e8ddc9] bg-[#f9f1dc] text-[#482e17]">
+    <nav className="z-50 flex h-16 w-full items-center justify-around border-t border-[#e8ddc9] bg-[#f9f1dc] text-[#482e17]">
       {menus.map((menu) => (
         <Link href={menu.href} key={menu.name}
           className={`flex flex-col items-center ${

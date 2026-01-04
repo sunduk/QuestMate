@@ -11,8 +11,8 @@ export default function MobileFrame({
     // 1. 바깥 배경: 스크롤 방지 (overflow-hidden)
     <div className="flex h-screen w-full justify-center bg-gray-100 overflow-hidden">
 
-      {/* 2. 모바일 컨테이너: h-full (부모 높이 100% 고정) */}
-      <div className="relative flex h-full w-full max-w-md flex-col bg-slate-50 shadow-2xl">
+      {/* 2. 모바일 컨테이너: 반응형 너비 */}
+      <div className="relative flex h-full w-full max-w-md md:max-w-2xl lg:max-w-4xl flex-col bg-slate-50 shadow-2xl">
         
         {/* 1. 상단 바 (고정) */}
         <TopBar />

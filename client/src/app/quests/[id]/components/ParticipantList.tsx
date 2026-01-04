@@ -32,7 +32,7 @@ export const ParticipantList = ({ participants, targetCount, durationDays }: Par
                   }`}
                   style={isCompleted ? { backgroundImage: "url('/quest_icon_gold_border_finish.png')" } : {}}
                 >
-                  {p.avatar}
+                  <img src={p.avatar} alt={`${p.name} avatar`} className="rounded-full w-10 h-10" />
                 </div>
               </div>
               <div className="flex-1 flex flex-col gap-1.5">
