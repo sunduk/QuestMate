@@ -1,47 +1,52 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import axios from "axios";
+import { useAuthStore } from "../../store/useAuthStore";
 
 export default function TopBar() {
   const router = useRouter();
+  const { token: storeToken, logout: storeLogout } = useAuthStore();
+  
+  // 스토어의 토큰 존재 여부로 로그인 상태 판단
+  const isLoggedIn = !!storeToken;
 
-  const handleLogout = async () => {
+  const handleAuthAction = async () => {
+    if (!isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+
     try {
-      // 1. 로컬 스토리지에서 토큰 꺼내기 (PlayerPrefs.GetString 같은 개념)
-      const token = localStorage.getItem("accessToken");
+      // 1. 로컬 스토리지에서 토큰 꺼내기
+      const token = localStorage.getItem("accessToken") || storeToken;
 
       if (!token) {
-        console.error("토큰이 없습니다. 이미 로그아웃되었을 수 있습니다.");
+        storeLogout();
+        localStorage.setItem("isLoggedIn", "false");
         router.replace("/");
         return;
       }
 
       // 2. 로그아웃 요청
-      // axios.post(URL, Body, Config)
-      const response = await axios.post(
+      await axios.post(
         "https://localhost:7173/api/auth/logout", 
-        {}, // Body: DTO가 비어있어도 JSON 형식은 맞춰야 하므로 빈 객체 전송
+        {}, 
         {
           headers: {
-            // ★ 핵심: Bearer 토큰 방식 표준 헤더
             Authorization: `Bearer ${token}`,
           },
         }
       );
-
-      // 2. 응답 데이터 처리 (토큰 & 유저정보)
-      // 백엔드에서 { "accessToken": "...", "nickname": "..." } 형태로 준다고 가정
-      const { } = response.data; 
-
-      console.log("응답 데이터:", response.data);
     } catch (error) {
       console.error("로그아웃 실패:", error);
     } finally {
-      // 5. 로컬 스토리지 정리
+      // 5. 로컬 스토리지 및 스토어 정리
       localStorage.removeItem("accessToken");
       localStorage.removeItem("userId");
       localStorage.setItem("isLoggedIn", "false");
+      storeLogout();
 
       // 4. 첫 페이지로 강제 이동
       router.replace("/"); 
@@ -72,15 +77,15 @@ export default function TopBar() {
         {/* <button className="text-xl hover:text-yellow-400">🔔</button>
         <button className="text-xl hover:text-yellow-400">⚙️</button> */}
         <button 
-          onClick={handleLogout}
+          onClick={handleAuthAction}
           className="relative flex h-10 w-20 items-center justify-center transition active:scale-95 hover:brightness-110"
         >
           <div 
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: "url('/button_logout.png')", backgroundSize: '100% 100%' }}
+            style={{ backgroundImage: isLoggedIn ? "url('/button_logout.png')" : "url('/button_login.png')", backgroundSize: '100% 100%' }}
           />
           <span className="relative z-10 text-[11px] font-bold text-[#fffdf2] drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">
-            로그아웃
+            {isLoggedIn ? "로그아웃" : "로그인"}
           </span>
         </button>
       </div>

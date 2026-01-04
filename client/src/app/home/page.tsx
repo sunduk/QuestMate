@@ -28,34 +28,44 @@ export default function HomePage() {
   
 
   return (
-    <div className="flex min-h-full flex-col items-center px-6 py-8">
-      
+    <div className="h-full w-full bg-cover bg-center bg-no-repeat flex flex-col items-center px-6 py-2"
+      style={{ backgroundImage: "url('/home_bg.png')" }}>
+
       {/* 1. 메인 로고 (공통) */}
-      <div className="mb-8 flex flex-col items-center gap-1">
-        <div className="flex h-12 w-12 items-center justify-center rounded bg-slate-300 text-xl shadow-sm">
-          🏰
-        </div>
-        <h1 className="text-center text-3xl font-black uppercase leading-none text-slate-800">
-          Quest Mate<br />
-          <span className="text-yellow-500">Home</span>
-        </h1>
-        <p className="mt-2 text-sm font-bold text-slate-400">HOME (LOBBY)</p>
+      <div className="mb-2 flex flex-col items-center gap-1">
+        <img src="/title_img.png" alt="Quest Mate Logo" className="h-60 w-60 object-contain" />
       </div>
 
-      {/* 2. 상태에 따른 분기 처리 (삼항 연산자) */}
-      {hasActiveQuest ? (
-        <ActiveQuestView />
-      ) : (
-        <EmptyQuestView />
-      )}
+      <h1 className="mb-6 text-xl font-bold text-[#5b3a1b] text-center text-shadow-md">
+        사진 한 장과 글 한 줄로<br />
+        오늘의 발자국을 남기는 노트입니다
+      </h1>
 
-      {/* (개발용) 상태 전환 버튼: 나중에는 지우세요 */}
-      <button 
-        onClick={() => setHasActiveQuest(!hasActiveQuest)}
-        className="mt-10 text-xs text-gray-400 underline"
-      >
-        [개발용] 상태 전환하기 (Click)
-      </button>
+      {/* <img src="/home_logo.png" alt="Home Note" className="mb-12 h-80 w-full object-contain border-1 border-gray-400 shadow-lg" /> */}
+
+      <img src="/preview09.jpeg" alt="Home Note" className="mb-12 h- w-75 object-contain" />
+
+      {/* 가로 세줄로 표현 */}
+      {/* <div className="grid grid-cols-3 gap-2 mb-12">
+        <div className="relative">
+          <img src="/home_card_01.png" alt="Home Card" className="h-30 w-30 object-contain" />
+          <div className="absolute bottom-0 left-6 bottom-3 transform text-sm font-medium text-[#5b3a1b]">
+            나의 발자국
+          </div>
+        </div>
+        <div className="relative">
+          <img src="/home_card_02.png" alt="Home Card" className="h-30 w-30 object-contain" />
+          <div className="absolute bottom-0 left-8 bottom-3 transform text-sm font-medium text-[#5b3a1b]">
+            비밀 노트
+          </div>
+        </div>
+        <div className="relative">
+          <img src="/home_card_03.png" alt="Home Card" className="h-30 w-30 object-contain" />
+          <div className="absolute bottom-0 left-5 bottom-3 transform text-sm font-medium text-[#5b3a1b]">
+            한주간의 변화
+          </div>
+        </div>
+      </div> */}
     </div>
   );
 }

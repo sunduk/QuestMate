@@ -5,8 +5,12 @@ import { QuestDetailDto, QuestViewModel } from "../types";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7173";
 
 const getRandomAvatar = (uid: number) => {
-  const emojis = ["🧑‍🦰", "🧟‍♂️", "👨", "🐤", "🐶", "🐱"];
-  return emojis[uid % emojis.length];
+  // const emojis = ["🧑‍🦰", "🧟‍♂️", "👨", "🐤", "🐶", "🐱"];
+  // return emojis[uid % emojis.length];
+
+  const icons = ["/icon_preview_candy.png", "/icon_preview_cafeowner.png", "/icon_preview_office.png", "/icon_preview_rider.png"]
+  return icons[3];
+  //return icons[uid % icons.length];
 };
 
 const mapDataToViewModel = (data: QuestDetailDto, myId?: number): QuestViewModel => {
@@ -50,7 +54,7 @@ const mapDataToViewModel = (data: QuestDetailDto, myId?: number): QuestViewModel
         id: v.id,
         userId: v.userId,
         isMine: myId ? myId === v.userId : false,
-        userName: v.userName || "알 수 없음",
+        userName: v.userName || "이름 없음",
         userAvatar: getRandomAvatar(v.userId),
         imageUrl: fullImageUrl,
         comment: v.comment,

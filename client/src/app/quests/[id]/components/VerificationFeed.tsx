@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { VerificationViewModel } from "../types";
 
 interface VerificationFeedProps {
@@ -31,6 +32,14 @@ export const VerificationFeed = ({
   onEditImageChange,
   onRemoveEditImage,
 }: VerificationFeedProps) => {
+  const [isLoggedIn] = useState(() => {
+    // 브라우저 환경에서만 localStorage 접근
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('isLoggedIn') === 'true';
+    }
+    return false;
+  });
+
   if (verifications.length === 0) {
     return (
       <div className="flex flex-row items-center justify-center py-10 text-[#443321] text-sm bg-[#fef8e8] shadow-lg shadow-amber-900/20 rounded-2xl border-2 border-dashed border-gray-100 gap-4 px-6">
@@ -54,15 +63,15 @@ export const VerificationFeed = ({
         >
           {/* 유저 정보 */}
           <div className="flex items-center gap-2 p-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-lg border border-[#929675]">
-              {v.userAvatar}
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-lg border border-[#929675]">
+              <img src ={v.userAvatar} alt="User Avatar" className="h-16 w-16 object-contain" />
             </div>
             <div className="flex flex-col">
               <span className="text-xs font-bold text-slate-800">{v.userName}</span>
-              <span className="text-[10px] text-slate-400">{v.createdAt}</span>
+              {/* <span className="text-[10px] text-slate-400">{v.createdAt}</span> */}
             </div>
             {/* 수정/삭제 버튼 */}
-            {v.isMine && editingVerifyId !== v.id && (
+            {isLoggedIn && v.isMine && editingVerifyId !== v.id && (
               <div className="ml-auto flex items-center gap-2 h-8">
                 <button
                   onClick={() => onStartEdit(v)}
