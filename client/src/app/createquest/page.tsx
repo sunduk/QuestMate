@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 import api from "../../lib/axios"; // 우리가 만든 Axios 인스턴스
 import { isAxiosError } from "axios";
+import { useAuthStore } from "../../store/useAuthStore";
 
 // 카테고리 매핑 (서버: 0=운동, 1=공부, 2=생활, 3=기타 가정)
 const CATEGORIES = [
@@ -17,9 +18,13 @@ const CATEGORIES = [
 export default function CreateQuestPage() {
   const router = useRouter();
   const titleRef = useRef<HTMLInputElement>(null);
+  const { token } = useAuthStore();
+  const isLoggedIn = !!token;
+  
   const [isLoading, setIsLoading] = useState(false);
   const [titleError, setTitleError] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   // DTO 구조에 맞춘 State
   const [formData, setFormData] = useState({
@@ -49,6 +54,16 @@ export default function CreateQuestPage() {
     }));
   };
 
+  // Input 필드 포커스 핸들러
+  const handleInputFocus = () => {
+    if (!isLoggedIn) {
+      // remove input filed focus.
+      titleRef.current?.blur();
+      
+      setShowLoginModal(true);
+    }
+  };
+
   // 카테고리 변경 핸들러
   const handleCategoryChange = (catId: number) => {
     setFormData((prev) => ({ ...prev, category: catId }));
@@ -61,6 +76,12 @@ export default function CreateQuestPage() {
 
   // 제출 핸들러
   const handleSubmit = async () => {
+    // 로그인 체크
+    if (!isLoggedIn) {
+      setShowLoginModal(true);
+      return;
+    }
+
     if (!formData.title.trim()) {
       setTitleError(true);
       titleRef.current?.focus();
@@ -102,6 +123,10 @@ export default function CreateQuestPage() {
         <h2 className="text-3xl font-bold text-[#472c13] tracking-tight drop-shadow-sm mt-1">
           노트 만들기
         </h2>
+        <div className="mt-2 text-center text-sm text-gray-600">
+          <img src="/icon_lock.png" alt="Lock Icon" className="inline-block mr-1 w-4 h-5" />
+          쉿, 나만 볼 수 있어요. 비공개로 저장됩니다.
+        </div>
       </div>
 
       {/* 2. 입력 폼 영역 */}
@@ -116,6 +141,7 @@ export default function CreateQuestPage() {
             name="title"
             value={formData.title}
             onChange={handleChange}
+            onFocus={handleInputFocus}
             placeholder="예: 매일 아침 5분 글쓰기"
             className={`w-full rounded-xl border px-4 py-3 text-gray-800 outline-none transition 
               ${titleError 
@@ -275,6 +301,60 @@ export default function CreateQuestPage() {
               className="w-full rounded-xl bg-yellow-500 py-4 text-lg font-bold text-white shadow-lg shadow-yellow-500/30 transition active:scale-95 hover:bg-yellow-600"
             >
               확인하러 가기
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 6. 로그인 모달 */}
+      {showLoginModal && (
+        <div 
+          className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 px-6"
+          onClick={() => setShowLoginModal(false)}
+        >
+          <div 
+            className="w-full max-w-sm animate-in fade-in zoom-in duration-300 rounded-3xl bg-[#fbf3e0] p-8 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-6 text-center">
+              <div className="mb-4 text-5xl"><img src="/login_logo.png" alt="Login Logo" className="mx-auto" /></div>
+              <h3 className="mb-2 text-2xl font-bold text-gray-800">로그인이 필요해요</h3>
+              <p className="text-sm text-gray-500">
+                노트를 만들려면 로그인해주세요
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              {/* 구글 로그인 */}
+              <button
+                className="w-full flex items-center justify-center gap-3 rounded-xl border border-gray-300 bg-white py-3 px-4 text-gray-700 font-medium shadow-sm transition hover:bg-gray-50 active:scale-95"
+              >
+                <img src="/icon_google.png" alt="Google" className="w-6 h-6" />
+                <span>Google로 시작하기</span>
+              </button>
+
+              {/* 카카오 로그인 */}
+              <button
+                className="w-full flex items-center justify-center gap-3 rounded-xl bg-[#FEE500] py-3 px-4 text-[#000000] font-medium shadow-sm transition hover:bg-[#FDD835] active:scale-95"
+              >
+                <img src="/icon_kakao.png" alt="Kakao" className="w-6 h-6" />
+                <span>카카오로 시작하기</span>
+              </button>
+
+              {/* 네이버 로그인 */}
+              <button
+                className="w-full flex items-center justify-center gap-3 rounded-xl bg-[#03C75A] py-3 px-4 text-white font-medium shadow-sm transition hover:bg-[#02B350] active:scale-95"
+              >
+                <img src="/icon_naver.png" alt="Naver" className="w-6 h-6" />
+                <span>네이버로 시작하기</span>
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowLoginModal(false)}
+              className="mt-6 w-full rounded-xl bg-gray-300 py-3 text-gray-600 font-medium transition hover:bg-gray-400 active:scale-95"
+            >
+              닫기
             </button>
           </div>
         </div>
