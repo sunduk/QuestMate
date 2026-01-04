@@ -108,7 +108,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="h-full w-full bg-cover bg-center bg-no-repeat flex flex-col items-center px-2 py-2"
+    <div className="min-h-screen w-full bg-cover bg-center bg-no-repeat flex flex-col items-center px-2 py-2 pb-20"
       style={{ backgroundImage: "url('/home_bg.png')" }}>
 
       {/* 1. 메인 로고 (공통) */}
@@ -147,7 +147,7 @@ export default function LoginPage() {
       </div>
 
       {/* 4. 하단 버튼 */}
-      <div className="mt-8">
+      <div className="mt-8 mb-12 w-full flex justify-center">
         <button
           onClick={handleCreateQuest}
           className={`w-90 rounded-full py-4 text-xl font-bold text-[#f0dedb] text-shadow-md text-shadow-[#5b3a1b] shadow-xl transition active:scale-95 bg-cover bg-center bg-no-repeat shadow-amber-900/50`}

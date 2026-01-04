@@ -18,7 +18,7 @@ export default function MobileFrame({
         <TopBar />
 
         {/* 2. 메인 컨텐츠 */}
-        <main className="flex-1 relative overflow-hidden">
+        <main className="flex-1 relative overflow-y-auto">
           {children}
         </main>
 
