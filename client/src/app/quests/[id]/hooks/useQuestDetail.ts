@@ -3,6 +3,7 @@ import { fetchQuestDetail } from "../api";
 import { QuestDetailDto, QuestViewModel } from "../types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7173";
+const IMAGE_BASE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || "https://localhost:7173";
 
 const getRandomAvatar = (uid: number) => {
   // const emojis = ["🧑‍🦰", "🧟‍♂️", "👨", "🐤", "🐶", "🐱"];
@@ -37,7 +38,7 @@ const mapDataToViewModel = (data: QuestDetailDto, myId?: number): QuestViewModel
       // 이미지 경로 처리
       let fullImageUrl = v.imageUrl;
       if (v.imageUrl && !v.imageUrl.startsWith("http")) {
-        const baseUrl = API_BASE_URL.replace(/\/$/, "");
+        const baseUrl = IMAGE_BASE_URL.replace(/\/$/, "");
         const path = v.imageUrl.startsWith("/") ? v.imageUrl : `/${v.imageUrl}`;
         fullImageUrl = `${baseUrl}${path}`;
       }

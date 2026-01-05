@@ -465,7 +465,7 @@ namespace QuestMateAPI.Infrastructure.Repositories
                     qv.comment,
                     qv.created_at
                 FROM quest_verification qv
-                JOIN local_account u ON qv.user_id = u.id
+                JOIN user u ON qv.user_id = u.id
                 WHERE qv.quest_id = @QuestId
                 ORDER BY qv.created_at DESC"; // 최신 인증샷이 먼저 보이도록
 

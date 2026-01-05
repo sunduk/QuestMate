@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { VerificationViewModel } from "../types";
+import { useAuthStore } from "@/src/store/useAuthStore";
 
 interface VerificationFeedProps {
   verifications: VerificationViewModel[];
@@ -32,13 +33,11 @@ export const VerificationFeed = ({
   onEditImageChange,
   onRemoveEditImage,
 }: VerificationFeedProps) => {
-  const [isLoggedIn] = useState(() => {
-    // 브라우저 환경에서만 localStorage 접근
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('isLoggedIn') === 'true';
-    }
-    return false;
-  });
+
+  const { token: storeToken, logout: storeLogout } = useAuthStore();
+    
+  // 스토어의 토큰 존재 여부로 로그인 상태 판단
+  const isLoggedIn = !!storeToken;
 
   if (verifications.length === 0) {
     return (

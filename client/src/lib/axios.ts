@@ -1,10 +1,13 @@
 // src/lib/axios.ts
 import axios from 'axios';
 
+// baseURL을 상수로 추출하여 재사용 가능하도록 export
+export const baseURL = process.env.NEXT_PUBLIC_API_URL || 'https://localhost:7173/api';
+
 // 1. Axios 인스턴스 생성 (싱글톤처럼 동작)
 // 게임 서버의 Base IP/Port를 미리 박아두는 곳입니다.
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://localhost:7173/api', // HTTP 포트 확인!
+  baseURL, // HTTP 포트 확인!
   timeout: 5000, // 5초 타임아웃 (네트워크 지연 대비)
   headers: {
     'Content-Type': 'application/json',

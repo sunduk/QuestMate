@@ -41,7 +41,7 @@ namespace QuestMateAPI.Controllers
         }
 
         [HttpGet("list")]
-        // [Authorize] // 퀘스트 목록은 로그인 안 해도 보이게 할지 결정 (일단 주석)
+        [Authorize]
         public async Task<IActionResult> GetList()
         {
             var result = await _questService.GetQuestListAsync();
@@ -56,6 +56,7 @@ namespace QuestMateAPI.Controllers
 
         // 퀘스트 상세 조회 (GET /api/quest/{id})
         [HttpGet("{id}")]
+        [Authorize]
         public async Task<IActionResult> GetDetail(long id)
         {
             // 1. 내 ID 확인 (로그인 했다면 토큰에서 꺼냄, 안 했으면 0)

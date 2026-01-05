@@ -1,15 +1,15 @@
-using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
-
-using QuestMateAPI.Infrastructure.Db;
-using QuestMateAPI.Application.Interfaces.Repositories;
-using QuestMateAPI.Infrastructure.Repositories;
-using QuestMateAPI.Application.DTOs.Auth;
-using QuestMateAPI.Application.Services;
-using QuestMateAPI.Application.Security;
 using Microsoft.OpenApi.Models;
+using QuestMateAPI.Application.DTOs.Auth;
 using QuestMateAPI.Application.DTOs.Quest;
+using QuestMateAPI.Application.Interfaces.Repositories;
+using QuestMateAPI.Application.Security;
+using QuestMateAPI.Application.Services;
+using QuestMateAPI.Application.Services.SocialLogin;
+using QuestMateAPI.Infrastructure.Db;
+using QuestMateAPI.Infrastructure.Repositories;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,11 +51,17 @@ builder.Services.AddSingleton<DapperContext>();
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ILocalAccountRepository, LocalAccountRepository>();
+builder.Services.AddScoped<ISocialAccountRepository, SocialAccountRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
 builder.Services.AddScoped<IQuestRepository, QuestRepository>();
 builder.Services.AddScoped<IQuestService, QuestService>();
+
+builder.Services.AddScoped<ICommonAuthService, CommonAuthService>();
+builder.Services.AddHttpClient<INaverAuthService, NaverAuthService>();
+builder.Services.AddHttpClient<IKakaoAuthService, KakaoAuthService>();
+builder.Services.AddHttpClient<IGoogleAuthService, GoogleAuthService>();
 
 Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
 

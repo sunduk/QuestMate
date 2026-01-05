@@ -110,11 +110,11 @@ export const VerificationForm = ({
             <img
               src={previewUrl}
               alt="Preview"
-              className="mb-3 w-full rounded-lg object-cover h-48 border border-gray-200"
+              className="mb-3 w-full rounded-lg object-cover h-48 md:h-80 lg:h-96 border border-gray-200"
             />
           ) : (
             <div 
-              className="mb-3 w-full rounded-lg h-48 border border-[#d6c6ac] bg-[#fbf3e8] flex items-center justify-center text-sm text-slate-400 bg-no-repeat bg-center" 
+              className="mb-3 w-full rounded-lg h-48 md:h-80 lg:h-96 border border-[#d6c6ac] bg-[#fbf3e8] flex items-center justify-center text-sm text-slate-400 bg-no-repeat bg-center" 
               style={{
                 backgroundImage: "url('/form_img.png')",
                 backgroundSize: "150px auto"
