@@ -3,11 +3,11 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-import api, { baseURL } from "../../lib/axios"; // 우리가 만든 Axios 인스턴스
+import api from "../../lib/axios"; // 우리가 만든 Axios 인스턴스
 import { isAxiosError } from "axios";
 import { useAuthStore } from "../../store/useAuthStore";
-
-import googleStyles from "../google.module.css";
+import { useModalStore } from "../../store/useModalStore";
+import LoginModal from "../../components/LoginModal";
 
 // 카테고리 매핑 (서버: 0=운동, 1=공부, 2=생활, 3=기타 가정)
 const CATEGORIES = [
@@ -22,11 +22,11 @@ export default function CreateQuestPage() {
   const titleRef = useRef<HTMLInputElement>(null);
   const { token } = useAuthStore();
   const isLoggedIn = !!token;
+  const { isLoginModalOpen, openLoginModal, closeLoginModal } = useModalStore();
   
   const [isLoading, setIsLoading] = useState(false);
   const [titleError, setTitleError] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [showLoginModal, setShowLoginModal] = useState(false);
 
   // DTO 구조에 맞춘 State
   const [formData, setFormData] = useState({
@@ -39,30 +39,7 @@ export default function CreateQuestPage() {
     imageUrl: null as string | null, // Day 5에 구현 예정
   });
 
-  const handleNaverLogin = () => {
-      window.location.href = baseURL + "/naverlogin";
-    }
 
-    const handleKakaoLogin = () => {
-      window.location.href = baseURL + "/kakaologin";
-    }
-
-    const handleGoogleLogin = () => {
-      // 1. 구글 OAuth URL 생성 (인가코드를 받기 위해)
-      const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
-      const redirectUri = `${window.location.origin}/auth/google/callback`;
-      const scope = "openid email profile";
-      
-      const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
-        `response_type=code&` +
-        `client_id=${encodeURIComponent(googleClientId)}&` +
-        `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-        `scope=${encodeURIComponent(scope)}&` +
-        `access_type=offline`;
-      
-      // 2. 구글 로그인 페이지로 리다이렉트 (인가코드를 받기 위해)
-      window.location.href = googleAuthUrl;
-    }
 
   // 입력 핸들러
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,7 +64,7 @@ export default function CreateQuestPage() {
       // remove input filed focus.
       titleRef.current?.blur();
       
-      setShowLoginModal(true);
+      openLoginModal();
     }
   };
 
@@ -105,7 +82,7 @@ export default function CreateQuestPage() {
   const handleSubmit = async () => {
     // 로그인 체크
     if (!isLoggedIn) {
-      setShowLoginModal(true);
+      openLoginModal();
       return;
     }
 
@@ -334,67 +311,7 @@ export default function CreateQuestPage() {
       )}
 
       {/* 6. 로그인 모달 */}
-      {showLoginModal && (
-        <div 
-          className="fixed inset-0 z-100 flex items-center justify-center bg-black/50 px-6"
-          onClick={() => setShowLoginModal(false)}
-        >
-          <div 
-            className="w-full max-w-sm animate-in fade-in zoom-in duration-300 rounded-3xl bg-[#fbf3e0] p-8 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mb-6 text-center">
-              <div className="mb-4 text-5xl"><img src="/login_logo.png" alt="Login Logo" className="mx-auto" /></div>
-              <h3 className="mb-2 text-2xl font-bold text-gray-800">로그인이 필요해요</h3>
-              <p className="text-sm text-gray-500">
-                노트를 만들려면 로그인해주세요
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              {/* 구글 로그인 */}
-              <button
-                className="w-full flex items-center justify-center gap-3 rounded-xl border border-gray-300 bg-white py-3 px-4 text-gray-700 font-medium shadow-sm transition hover:bg-gray-50 active:scale-95"
-                onClick={handleGoogleLogin}
-              >
-                <svg className="w-5 h-5" version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-                  <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
-                  <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
-                  <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
-                  <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
-                  <path fill="none" d="M0 0h48v48H0z"></path>
-                </svg>
-                <span>구글로 시작하기</span>
-              </button>
-
-              {/* 카카오 로그인 */}
-              <button
-                className="w-full flex items-center justify-center gap-3 rounded-xl bg-[#FEE500] py-3 px-4 text-[#000000] font-medium shadow-sm transition hover:bg-[#FDD835] active:scale-95"
-                onClick={handleKakaoLogin}
-              >
-                {/* <img src="/icon_kakao.png" alt="Kakao" className="w-6 h-6" /> */}
-                <span>카카오로 시작하기</span>
-              </button>
-
-              {/* 네이버 로그인 */}
-              <button
-                className="w-full flex items-center justify-center gap-3 rounded-xl bg-[#03C75A] py-3 px-4 text-white font-medium shadow-sm transition hover:bg-[#02B350] active:scale-95"
-                onClick={handleNaverLogin}
-              >
-                {/* <img src="/naver/icon_naver.png" alt="Naver" className="w-6 h-6" /> */}
-                <span>네이버로 시작하기</span>
-              </button>
-            </div>
-
-            <button
-              onClick={() => setShowLoginModal(false)}
-              className="mt-6 w-full rounded-xl bg-gray-300 py-3 text-gray-600 font-medium transition hover:bg-gray-400 active:scale-95"
-            >
-              닫기
-            </button>
-          </div>
-        </div>
-      )}
+      <LoginModal isOpen={isLoginModalOpen} onClose={closeLoginModal} />
 
     </div>
   );

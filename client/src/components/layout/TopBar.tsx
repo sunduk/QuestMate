@@ -4,20 +4,24 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuthStore } from "../../store/useAuthStore";
+import { useModalStore } from "../../store/useModalStore";
+import LoginModal from "../LoginModal";
 
 export default function TopBar() {
   const router = useRouter();
   const { token: storeToken, logout: storeLogout } = useAuthStore();
+  const { isLoginModalOpen, openLoginModal, closeLoginModal } = useModalStore();
   
   // 스토어의 토큰 존재 여부로 로그인 상태 판단
   const isLoggedIn = !!storeToken;
 
   const handleAuthAction = async () => {
     if (!isLoggedIn) {
-      router.push("/login");
+      openLoginModal();
       return;
     }
 
+    // 로그아웃 처리
     try {
       // 1. 로컬 스토리지에서 토큰 꺼내기
       const token = localStorage.getItem("accessToken") || storeToken;
@@ -89,6 +93,9 @@ export default function TopBar() {
           </span>
         </button>
       </div>
+
+      {/* 로그인 모달 */}
+      <LoginModal isOpen={isLoginModalOpen} onClose={closeLoginModal} />
     </header>
   );
 }
