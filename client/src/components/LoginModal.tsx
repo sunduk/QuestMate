@@ -5,9 +5,10 @@ import { baseURL } from "../lib/axios";
 interface LoginModalProps {
   isOpen: boolean;
   onClose: () => void;
+  state: string;
 }
 
-export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
+export default function LoginModal({ isOpen, onClose, state }: LoginModalProps) {
   if (!isOpen) return null;
 
   const handleNaverLogin = () => {
@@ -28,7 +29,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
       `client_id=${encodeURIComponent(googleClientId)}&` +
       `redirect_uri=${encodeURIComponent(redirectUri)}&` +
       `scope=${encodeURIComponent(scope)}&` +
-      `access_type=offline`;
+      `access_type=offline&` +
+      `state=${encodeURIComponent(state)}`;
     
     window.location.href = googleAuthUrl;
   };

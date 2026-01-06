@@ -9,6 +9,7 @@
         public bool IsHost { get; set; }
         public bool IsSuccess { get; set; }
         public int CurrentCount { get; set; }
+        public string ExtraData { get; set; }
     }
 
     // [추가] 인증 정보 DTO

@@ -31,7 +31,7 @@ export const QuestHeader = ({
           style={{ backgroundImage: "url('/button_delete_feed.png')", backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat' }}
         >
           <span className="text-[13px] font-bold text-[#fffdf2] drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">
-            {isLeaving ? "..." : "삭제"}
+            {isLeaving ? "..." : "노트 삭제"}
           </span>
         </button>
       )}

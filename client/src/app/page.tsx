@@ -9,12 +9,12 @@ export default function LoginPage() {
 
   useEffect(() => {
     // 임시 로그인 처리. 나중에 토큰/세션으로 교체.
-    const isLoggedIn = localStorage.getItem("isLoggedIn");
-    if (isLoggedIn != "false") {
-      if (isLoggedIn) {
-        router.push("/home");
-      }
-    }
+    // const isLoggedIn = localStorage.getItem("isLoggedIn");
+    // if (isLoggedIn != "false") {
+    //   if (isLoggedIn) {
+    //     router.push("/home");
+    //   }
+    // }
 
   }, [router]);
 
@@ -117,8 +117,8 @@ export default function LoginPage() {
       </div>
 
       <h1 className="mb-6 text-xl font-bold text-[#5b3a1b] text-center text-shadow-md">
-        사진 한 장과 글 한 줄로<br />
-        오늘의 발자국을 남기는 노트입니다
+        사진 한 장과 글 한 줄<br />
+        나만의 비밀 발자국을 남겨보세요
       </h1>
 
       {/* 가로 슬라이드 이미지 */}
@@ -153,7 +153,7 @@ export default function LoginPage() {
           className={`w-90 rounded-full py-4 text-xl font-bold text-[#f0dedb] text-shadow-md text-shadow-[#5b3a1b] shadow-xl transition active:scale-95 bg-cover bg-center bg-no-repeat shadow-amber-900/50`}
           style={{ backgroundImage: "url('/button_write_blank_footprint.png')" }}
         >
-          {"첫 발자국 노트 만들러 가기"}
+          {"발자국 노트 만들러 가기"}
         </button>
       </div>
 

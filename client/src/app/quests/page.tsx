@@ -225,9 +225,11 @@ export default function QuestListPage() {
 
             {/* 리스트가 비었을 때 처리 */}
             {filteredQuests.length === 0 && (
-              <div className="py-10 text-center text-slate-400">
+              <div className="py-10 text-center text-[#542b1a]">
                 아직 남겨진 발자국이 없어요.<br />
                 첫 발자국을 남겨보세요.
+
+                <img src="/stamp.png" alt="Quest Mate Logo" className="mx-auto w-80 mt-4 opacity-50" />
               </div>
             )}
           </div>

@@ -277,7 +277,7 @@ export default function CreateQuestPage() {
         <button
           onClick={handleSubmit}
           disabled={isLoading}
-          className={`w-full rounded-full py-4 text-xl font-bold text-[#5a3e24] shadow-lg transition active:scale-95 bg-cover bg-center bg-no-repeat border-none`}
+          className={`w-full rounded-full py-4 text-xl font-bold text-[#5a3e24] shadow-2xl transition active:scale-95 bg-cover bg-center bg-no-repeat border-none`}
           style={{ backgroundImage: "url('/button_write_blank.png')" }}
         >
           {isLoading ? "생성 중..." : `${formData.durationDays}일 노트 시작하기`}
@@ -293,16 +293,19 @@ export default function CreateQuestPage() {
       {/* 5. 성공 모달 */}
       {showSuccessModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-6">
-          <div className="w-full max-w-sm animate-in fade-in zoom-in duration-300 rounded-3xl bg-white p-8 text-center shadow-2xl">
-            <div className="mb-4 text-6xl">📝</div>
-            <h3 className="mb-2 text-2xl font-bold text-gray-800">목표 생성 완료</h3>
+          <div className="w-full max-w-sm animate-in fade-in zoom-in duration-300 rounded-3xl bg-[#fceed9] p-8 text-center shadow-2xl"
+            style={{ backgroundImage: "url('/popup_bg.png')", backgroundSize: "cover" }}>
+
+            <img src="/feed_noimage.png" alt="Quest Mate Logo" className="mx-auto mb-4 w-30" />
+            <h3 className="mb-2 text-2xl font-bold text-[#3d2f1c]">노트 생성 완료</h3>
             <p className="mb-8 text-gray-500">
-              새로운 목표가 생성되었습니다.<br />
+              새 노트를 만들었습니다.<br />
               지금 바로 확인해보세요!
             </p>
             <button
               onClick={() => router.push("/quests")}
-              className="w-full rounded-xl bg-yellow-500 py-4 text-lg font-bold text-white shadow-lg shadow-yellow-500/30 transition active:scale-95 hover:bg-yellow-600"
+              className={`w-full rounded-full py-4 text-xl font-bold text-[#f0dedb] text-shadow-md text-shadow-[#5b3a1b] shadow-2xl transition active:scale-95 bg-cover bg-center bg-no-repeat border-none shadow-amber-900/50`}
+              style={{ backgroundImage: "url('/button_write_blank.png')" }}
             >
               확인하러 가기
             </button>
@@ -311,7 +314,7 @@ export default function CreateQuestPage() {
       )}
 
       {/* 6. 로그인 모달 */}
-      <LoginModal isOpen={isLoginModalOpen} onClose={closeLoginModal} />
+      <LoginModal isOpen={isLoginModalOpen} onClose={closeLoginModal} state={"/createquest"} />
 
     </div>
   );

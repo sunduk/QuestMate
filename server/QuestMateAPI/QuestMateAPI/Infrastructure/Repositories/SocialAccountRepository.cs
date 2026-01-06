@@ -34,16 +34,16 @@ namespace QuestMateAPI.Infrastructure.Repositories
             return await conn.QuerySingleOrDefaultAsync<SocialAccount>(sql, new { Platform = platform, PlatformUserId = platformUserId });
         }
 
-        public async Task<long> CreateAccountUserAsync()
+        public async Task<long> CreateAccountUserAsync(string extraData)
         {
             using var conn = _context.CreateConnection();
 
             var sql = @"
-                INSERT INTO User (reg_date, login_date) 
-                VALUES (UTC_TIMESTAMP(), UTC_TIMESTAMP());
+                INSERT INTO User (reg_date, login_date, extra_data) 
+                VALUES (UTC_TIMESTAMP(), UTC_TIMESTAMP(), @ExtraData);
                 SELECT LAST_INSERT_ID();";
 
-            return await conn.ExecuteScalarAsync<long>(sql);
+            return await conn.ExecuteScalarAsync<long>(sql, new { extraData });
         }
 
         public async Task<long> CreateSocialAccountAsync(long accountUserId, int platform, string platformUserId, string accessToken, string refreshToken)

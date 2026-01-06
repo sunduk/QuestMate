@@ -5,12 +5,54 @@ import { QuestDetailDto, QuestViewModel } from "../types";
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7173";
 const IMAGE_BASE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || "https://localhost:7173";
 
-const getRandomAvatar = (uid: number) => {
+const getRandomAvatar = (avatarNumber: number) => {
   // const emojis = ["🧑‍🦰", "🧟‍♂️", "👨", "🐤", "🐶", "🐱"];
   // return emojis[uid % emojis.length];
 
-  const icons = ["/icon_preview_candy.png", "/icon_preview_cafeowner.png", "/icon_preview_office.png", "/icon_preview_rider.png"]
-  return icons[3];
+  const icons = [
+    "/usericon/type03_calendar01",
+    "/usericon/type03_default01",
+    "/usericon/type03_default02",
+    "/usericon/type03_default04",
+    "/usericon/type03_footprint",
+    "/usericon/type03_footprint02",
+    "/usericon/type03_pencil01",
+    "/usericon/typeo3_footprint02",
+    "/usericon/girl.png", 
+    "/usericon/kid.png",
+    "/usericon/type02_baby_smile.png",
+    "/usericon/type02_baby_surprise.png",
+    "/usericon/type02_baby02_idle.png",
+    "/usericon/type02_baby03_idle.png",
+    "/usericon/type02_baby04_idle.png",
+    "/usericon/type02_bear_angry.png",
+    "/usericon/type02_bear_sleepy.png",
+    "/usericon/type02_bear_smile.png",
+    "/usericon/type02_cat_angry.png",
+    "/usericon/type02_cat_idle.png",
+    "/usericon/type02_cat_smile.png",
+    "/usericon/type02_cat02_angry.png",
+    "/usericon/type02_cat02_idle.png",
+    "/usericon/type02_cat02_sleepy.png",
+    "/usericon/type02_doci_sleepy.png",
+    "/usericon/type02_doci_smile.png",
+    "/usericon/type02_doci_surprise.png",
+    "/usericon/type02_dog_smile.png",
+    "/usericon/type02_dog_wink.png",
+    "/usericon/type02_girl_angry.png",
+    "/usericon/type02_girl_cry.png",
+    "/usericon/type02_girl_smile.png",
+    "/usericon/type02_leap_blue.png",
+    "/usericon/type02_leap_red.png",
+    "/usericon/type02_leap_yellow.png",
+    "/usericon/type02_penguin_angry.png",
+    "/usericon/type02_penguin_sleepy.png",
+    "/usericon/type02_penguin_smile.png",
+    "/usericon/type02_rose01_blue.png",
+    "/usericon/type02_rose01_red.png",
+    "/usericon/type02_rose01_yellow.png"
+  ]
+  return icons[avatarNumber];
   //return icons[uid % icons.length];
 };
 
@@ -25,14 +67,27 @@ const mapDataToViewModel = (data: QuestDetailDto, myId?: number): QuestViewModel
     isJoined: data.isJoined,
     icon: data.category === 0 ? "/icon_health.png" : data.category === 1 ? "/icon_study.png" : "/icon_living.png",
 
-    participants: data.participants.map((p) => ({
-      userId: p.userId,
-      name: p.nickname || `유저 ${p.userId}`,
-      avatar: p.profileImageUrl || getRandomAvatar(p.userId),
-      current: p.currentCount,
-      isMe: myId ? myId === p.userId : false,
-      isHost: p.isHost,
-    })),
+    participants: data.participants.map((p) => {
+      let avatarNumber = 0;
+      try {
+        if (p.extraData) {
+          const parsed = JSON.parse(p.extraData);
+          avatarNumber = parsed.avatarNumber ?? 0;
+        }
+      } catch (e) {
+        avatarNumber = 0;
+      }
+
+      return {
+        userId: p.userId,
+        name: p.nickname || `유저 ${p.userId}`,
+        avatar: p.profileImageUrl || getRandomAvatar(avatarNumber),
+        current: p.currentCount,
+        isMe: myId ? myId === p.userId : false,
+        isHost: p.isHost,
+        extraData: p.extraData,
+      };
+    }),
 
     verifications: (data.verifications || []).map((v) => {
       // 이미지 경로 처리

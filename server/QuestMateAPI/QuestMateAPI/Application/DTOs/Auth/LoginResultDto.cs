@@ -1,4 +1,6 @@
-﻿namespace QuestMateAPI.Application.DTOs.Auth
+﻿using QuestMateAPI.Application.Models.UserData;
+
+namespace QuestMateAPI.Application.DTOs.Auth
 {
     public class LoginResultDto
     {
@@ -8,5 +10,6 @@
         public long? UserId { get; set; }
         public string? AccessToken { get; set; }
         public string? RefreshToken { get; set; }
+        public UserExtraData? ExtraData { get; set; }
     }
 }

@@ -16,6 +16,7 @@ export default function GoogleCallbackPage() {
       // 1. URL에서 인가코드 추출
       const code = searchParams.get("code");
       const errorParam = searchParams.get("error");
+      const state = searchParams.get("state") || "/";
 
       if (errorParam) {
         setError("구글 로그인이 취소되었습니다.");
@@ -47,7 +48,7 @@ export default function GoogleCallbackPage() {
           localStorage.setItem("isLoggedIn", "true");
 
           // 홈으로 리다이렉트
-          router.push("/createquest");
+          router.push(state);
         } else {
           setError("로그인 정보를 받지 못했습니다.");
         }
@@ -75,7 +76,7 @@ export default function GoogleCallbackPage() {
           </>
         ) : (
           <>
-            <div className="mb-4 text-5xl">🔄</div>
+            <img src="/form_img.png" alt="Loading" className="mx-auto mb-4 w-30 animate-spin-slow" />
             <h2 className="text-xl font-bold text-gray-800">구글 로그인 처리 중...</h2>
             <p className="mt-2 text-sm text-gray-500">잠시만 기다려주세요</p>
           </>

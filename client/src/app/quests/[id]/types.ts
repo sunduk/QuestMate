@@ -7,6 +7,7 @@ export interface QuestParticipantDto {
   profileImageUrl: string | null;
   isHost: boolean;
   currentCount: number;
+  extraData: string;
 }
 
 export interface VerificationDto {
@@ -43,6 +44,7 @@ export interface ParticipantViewModel {
   current: number;
   isMe: boolean;
   isHost: boolean;
+  extraData: string;
 }
 
 export interface VerificationViewModel {

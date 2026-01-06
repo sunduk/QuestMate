@@ -95,7 +95,7 @@ export default function TopBar() {
       </div>
 
       {/* 로그인 모달 */}
-      <LoginModal isOpen={isLoginModalOpen} onClose={closeLoginModal} />
+      <LoginModal isOpen={isLoginModalOpen} onClose={closeLoginModal} state={"/quests"} />
     </header>
   );
 }

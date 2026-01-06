@@ -1,4 +1,5 @@
 using QuestMateAPI.Application.Interfaces.Repositories;
+using QuestMateAPI.Application.Models.UserData;
 using QuestMateAPI.Domain.Entities;
 
 namespace QuestMateAPI.Application.Services.SocialLogin
@@ -24,9 +25,16 @@ namespace QuestMateAPI.Application.Services.SocialLogin
             if (existingAccount == null)
             {
                 // 신규 사용자 생성
-                Console.WriteLine("New user detected. Creating new account.");
+                // create extra data from UserExtraData.
+                UserExtraData extraData = new UserExtraData
+                {
+                    avatarNumber = Random.Shared.Next(0, 40 + 1)
+                };
 
-                var userId = await _repository.CreateAccountUserAsync();
+                // convert extraData to JSON string
+                string extraDataJson = System.Text.Json.JsonSerializer.Serialize(extraData);
+
+                var userId = await _repository.CreateAccountUserAsync(extraDataJson);
                 var socialAccountId = await _repository.CreateSocialAccountAsync(
                     userId,
                     (int)platform,
@@ -44,7 +52,8 @@ namespace QuestMateAPI.Application.Services.SocialLogin
                     AccessToken = accessToken,
                     RefreshToken = refreshToken,
                     RegDate = DateTime.UtcNow,
-                    LoginDate = DateTime.UtcNow
+                    LoginDate = DateTime.UtcNow,
+                    ExtraData = extraData
                 };
             }
             else
