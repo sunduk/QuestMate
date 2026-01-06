@@ -17,6 +17,7 @@ export interface VerificationDto {
   imageUrl: string;
   comment: string;
   createdAt: string;
+  avatarNumber: number;
 }
 
 export interface QuestDetailDto {
@@ -53,10 +54,10 @@ export interface VerificationViewModel {
   userId: number;
   isMine: boolean;
   userName: string;
-  userAvatar: string;
   imageUrl: string;
   comment: string;
   createdAt: string;
+  avatarNumber: number;
 }
 
 export interface QuestViewModel {

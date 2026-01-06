@@ -96,9 +96,11 @@ namespace QuestMateAPI.Infrastructure.Repositories
                 q.max_member_count AS MaxMemberCount,
                 q.image_url AS ImageUrl,
                 q.status AS Status,
-                COALESCE(qm.current_count, 0) AS hostUserVerificationCount
+                COALESCE(qm.current_count, 0) AS hostUserVerificationCount,
+                u.avatar_number AS avatarNumber
             FROM Quest q
             LEFT JOIN QuestMember qm ON q.id = qm.quest_id AND q.host_user_id = qm.user_id
+            LEFT JOIN User u ON q.host_user_id = u.id
             WHERE q.status = 0
             ORDER BY q.created_at DESC";
 
@@ -465,7 +467,8 @@ namespace QuestMateAPI.Infrastructure.Repositories
                     qv.user_id,
                     qv.image_url,
                     qv.comment,
-                    qv.created_at
+                    qv.created_at,
+                    u.avatar_number
                 FROM quest_verification qv
                 JOIN user u ON qv.user_id = u.id
                 WHERE qv.quest_id = @QuestId

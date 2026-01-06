@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using QuestMateAPI.Application.DTOs.Auth;
+using QuestMateAPI.Application.DTOs.Avatar;
 using QuestMateAPI.Application.DTOs.Quest;
 using QuestMateAPI.Application.Interfaces.Repositories;
 using QuestMateAPI.Application.Security;
@@ -54,6 +55,8 @@ builder.Services.AddScoped<ILocalAccountRepository, LocalAccountRepository>();
 builder.Services.AddScoped<ISocialAccountRepository, SocialAccountRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+
+builder.Services.AddScoped<IAvatarService, AvatarService>();
 
 builder.Services.AddScoped<IQuestRepository, QuestRepository>();
 builder.Services.AddScoped<IQuestService, QuestService>();

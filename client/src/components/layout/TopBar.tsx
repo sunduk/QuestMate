@@ -3,11 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { isAxiosError } from "axios";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useModalStore } from "../../store/useModalStore";
 import LoginModal from "../LoginModal";
 import UserAvatar from "../UserAvatar";
 import { AVATAR_ICONS } from "../../lib/avatarIcons";
+import api from "../../lib/axios"; // 우리가 만든 Axios 인스턴스
 
 export default function TopBar() {
   const router = useRouter();
@@ -57,27 +59,33 @@ export default function TopBar() {
   // 아바타 아이콘 목록 (공용)
   const avatarIcons = AVATAR_ICONS;
 
+  const [formData, setFormData] = useState({
+    avatarNumber: avatarNumber,
+  });
+
   const handleAvatarSelect = async (index: number) => {
-    setAvatarNumber(index);
-    localStorage.setItem("avatarNumber", index.toString());
-    
     // 서버에 업데이트 (선택사항)
     try {
-      const token = localStorage.getItem("accessToken") || storeToken;
-      await axios.put(
-        `https://localhost:7173/api/users/${user?.id}/avatar`,
-        { avatarNumber: index },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      // 1. API 호출 (자동으로 헤더에 토큰 들어감)
+      const newFormData = { ...formData, avatarNumber: index };
+      const response = await api.post("/avatar/change", newFormData);
+
+      //console.log("퀘스트 생성 완료:", response.data);
+      
+      // 2. 성공 시...
+      setAvatarNumber(index);
+      localStorage.setItem("avatarNumber", index.toString());
     } catch (error) {
-      console.error("아바타 업데이트 실패:", error);
+      console.error("생성 실패:", error);
+      if (isAxiosError(error)) {
+         alert(`생성 실패: ${error.response?.data?.error || "서버 오류"}`);
+      } else {
+         alert("알 수 없는 오류가 발생했습니다.");
+      }
+    } finally {
+      // 3. 모달 닫기
+      setIsAvatarModalOpen(false);
     }
-    
-    setIsAvatarModalOpen(false);
   };
 
   const handleAuthAction = async () => {

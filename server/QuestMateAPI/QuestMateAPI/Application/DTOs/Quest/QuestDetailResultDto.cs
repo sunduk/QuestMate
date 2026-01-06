@@ -20,6 +20,7 @@
         public string ImageUrl { get; set; }      // 인증 이미지 URL
         public string Comment { get; set; }        // 코멘트
         public DateTime CreatedAt { get; set; }   // 생성일시
+        public int AvatarNumber { get; set; }   // 유저 아바타 번호
     }
 
     // 2. 퀘스트 상세 정보 (본체)

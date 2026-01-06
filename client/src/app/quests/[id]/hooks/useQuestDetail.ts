@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { fetchQuestDetail } from "../api";
 import { QuestDetailDto, QuestViewModel } from "../types";
+import { AVATAR_ICONS, getAvatarPath } from "../../../../lib/avatarIcons";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7173";
 const IMAGE_BASE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || "https://localhost:7173";
@@ -71,7 +72,7 @@ const mapDataToViewModel = (data: QuestDetailDto, myId?: number): QuestViewModel
       return {
         userId: p.userId,
         name: p.nickname || `유저 ${p.userId}`,
-        avatar: p.profileImageUrl || getRandomAvatar(p.avatarNumber),
+        avatar: p.profileImageUrl || getAvatarPath(p.avatarNumber),
         current: p.currentCount,
         isMe: myId ? myId === p.userId : false,
         isHost: p.isHost,
@@ -102,7 +103,6 @@ const mapDataToViewModel = (data: QuestDetailDto, myId?: number): QuestViewModel
         userId: v.userId,
         isMine: myId ? myId === v.userId : false,
         userName: v.userName || "이름 없음",
-        userAvatar: getRandomAvatar(v.userId),
         imageUrl: fullImageUrl,
         comment: v.comment,
         createdAt: new Date(dateStr).toLocaleString("ko-KR", {
@@ -113,6 +113,7 @@ const mapDataToViewModel = (data: QuestDetailDto, myId?: number): QuestViewModel
           minute: "2-digit",
           hour12: false,
         }),
+        avatarNumber: v.avatarNumber
       };
     }),
   };

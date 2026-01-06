@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { VerificationViewModel } from "../types";
 import { useAuthStore } from "@/src/store/useAuthStore";
+import { getAvatarPath } from "@/src/lib/avatarIcons";
 
 interface VerificationFeedProps {
   verifications: VerificationViewModel[];
@@ -63,7 +64,7 @@ export const VerificationFeed = ({
           {/* 유저 정보 */}
           <div className="flex items-center gap-2 p-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-lg border border-[#929675]">
-              <img src ={v.userAvatar} alt="User Avatar" className="h-16 w-16 object-contain" />
+              <img src ={getAvatarPath(v.avatarNumber)} alt="User Avatar" className="h-16 w-16 object-contain" />
             </div>
             <div className="flex flex-col">
               <span className="text-xs font-bold text-slate-800">{v.userName}</span>

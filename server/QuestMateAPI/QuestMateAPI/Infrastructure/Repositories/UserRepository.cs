@@ -50,4 +50,15 @@ public class UserRepository : IUserRepository
         using var conn = _context.CreateConnection();
         await conn.ExecuteAsync(sql, new { userId });
     }
+
+    public async Task UpdateAvatarAsync(long userId, int avatarNumber)
+    {
+        const string sql = @"
+            UPDATE user
+            SET avatar_number = @avatarNumber
+            WHERE id = @userId;
+        ";
+        using var conn = _context.CreateConnection();
+        await conn.ExecuteAsync(sql, new { userId, avatarNumber });
+    }
 }
