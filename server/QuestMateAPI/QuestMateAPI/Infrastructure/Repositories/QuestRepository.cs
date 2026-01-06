@@ -128,7 +128,8 @@ namespace QuestMateAPI.Infrastructure.Repositories
             qm.is_host AS IsHost,
             qm.is_success AS IsSuccess,
             qm.current_count AS CurrentCount, -- 각 유저의 인증 횟수
-            u.extra_data as ExtraData
+            u.avatar_number as AvatarNumber,
+            u.nickname AS Nickname
         FROM QuestMember qm
         JOIN User u ON qm.user_id = u.id
         WHERE qm.quest_id = @QuestId

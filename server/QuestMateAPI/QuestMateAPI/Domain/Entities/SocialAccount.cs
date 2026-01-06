@@ -1,6 +1,4 @@
-﻿using QuestMateAPI.Application.Models.UserData;
-
-namespace QuestMateAPI.Domain.Entities
+﻿namespace QuestMateAPI.Domain.Entities
 {
     public class SocialAccount
     {
@@ -16,6 +14,7 @@ namespace QuestMateAPI.Domain.Entities
         public DateTime RegDate { get; set; }
         public DateTime? LoginDate { get; set; }
 
-        public UserExtraData? ExtraData { get; set; }
+        public int? AvatarNumber { get; set; }
+        public string? Nickname { get; set; }
     }
 }

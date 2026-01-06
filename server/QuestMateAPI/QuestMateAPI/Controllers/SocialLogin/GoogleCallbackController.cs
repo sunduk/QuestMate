@@ -61,7 +61,8 @@ namespace QuestMateAPI.Controllers.SocialLogin
                 Success = true,
                 UserId = socialAccount.UserId,
                 AccessToken = jwt,
-                ExtraData = socialAccount.ExtraData
+                AvatarNumber = socialAccount.AvatarNumber,
+                Nickname = socialAccount.Nickname
             };
 
             return Ok(result);

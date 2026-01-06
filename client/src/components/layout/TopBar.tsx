@@ -6,14 +6,33 @@ import axios from "axios";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useModalStore } from "../../store/useModalStore";
 import LoginModal from "../LoginModal";
+import UserAvatar from "../UserAvatar";
 
 export default function TopBar() {
   const router = useRouter();
-  const { token: storeToken, logout: storeLogout } = useAuthStore();
+  const { token: storeToken, logout: storeLogout, user } = useAuthStore();
   const { isLoginModalOpen, openLoginModal, closeLoginModal } = useModalStore();
   
   // 스토어의 토큰 존재 여부로 로그인 상태 판단
   const isLoggedIn = !!storeToken;
+
+  // extraData에서 avatarNumber 가져오기
+  const [avatarNumber, setAvatarNumber] = useState<number>(0);
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      // localStorage에서 extraData 가져오기
+      const avatarNumber = localStorage.getItem("avatarNumber");
+      
+      if (avatarNumber) {
+        try {
+          setAvatarNumber(Number(avatarNumber));
+        } catch (error) {
+          console.error("extraData 파싱 실패:", error);
+        }
+      }
+    }
+  }, [isLoggedIn]);
 
   const handleAuthAction = async () => {
     if (!isLoggedIn) {
@@ -49,6 +68,7 @@ export default function TopBar() {
       // 5. 로컬 스토리지 및 스토어 정리
       localStorage.removeItem("accessToken");
       localStorage.removeItem("userId");
+      localStorage.removeItem("userExtraData");
       localStorage.setItem("isLoggedIn", "false");
       storeLogout();
 
@@ -77,9 +97,13 @@ export default function TopBar() {
       {/* <h1 className="text-xl font-black text-[#6e5238] text-center">발자국 노트</h1> */}
 
       {/* 오른쪽: 알림, 설정 */}
-      <div className="absolute right-4 flex gap-4">
+      <div className="absolute right-4 flex gap-2 items-center">
         {/* <button className="text-xl hover:text-yellow-400">🔔</button>
         <button className="text-xl hover:text-yellow-400">⚙️</button> */}
+        
+        {/* 유저 아이콘 (로그인 시에만 표시) */}
+        {isLoggedIn && <UserAvatar avatarNumber={avatarNumber} size={36} />}
+        
         <button 
           onClick={handleAuthAction}
           className="relative flex h-10 w-20 items-center justify-center transition active:scale-95 hover:brightness-110"

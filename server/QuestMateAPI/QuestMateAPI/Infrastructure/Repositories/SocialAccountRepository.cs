@@ -27,23 +27,26 @@ namespace QuestMateAPI.Infrastructure.Repositories
                     sa.access_token AS AccessToken,
                     sa.refresh_token AS RefreshToken,
                     sa.reg_date AS RegDate,
-                    sa.login_date AS LoginDate
+                    sa.login_date AS LoginDate,
+                    u.avatar_number as AvatarNumber,
+                    u.nickname as Nickname
                 FROM social_account sa
+                LEFT JOIN user u ON sa.user_id = u.id
                 WHERE sa.platform = @Platform AND sa.platform_user_id = @PlatformUserId";
 
             return await conn.QuerySingleOrDefaultAsync<SocialAccount>(sql, new { Platform = platform, PlatformUserId = platformUserId });
         }
 
-        public async Task<long> CreateAccountUserAsync(string extraData)
+        public async Task<long> CreateAccountUserAsync(int avatarNumber, string nickname)
         {
             using var conn = _context.CreateConnection();
 
             var sql = @"
-                INSERT INTO User (reg_date, login_date, extra_data) 
-                VALUES (UTC_TIMESTAMP(), UTC_TIMESTAMP(), @ExtraData);
+                INSERT INTO User (reg_date, login_date, avatar_number, nickname) 
+                VALUES (UTC_TIMESTAMP(), UTC_TIMESTAMP(), @AvatarNumber, @Nickname);
                 SELECT LAST_INSERT_ID();";
 
-            return await conn.ExecuteScalarAsync<long>(sql, new { extraData });
+            return await conn.ExecuteScalarAsync<long>(sql, new { avatarNumber, nickname });
         }
 
         public async Task<long> CreateSocialAccountAsync(long accountUserId, int platform, string platformUserId, string accessToken, string refreshToken)

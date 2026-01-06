@@ -1,6 +1,6 @@
 using QuestMateAPI.Application.Interfaces.Repositories;
-using QuestMateAPI.Application.Models.UserData;
 using QuestMateAPI.Domain.Entities;
+using QuestMateAPI.Infrastructure.Repositories;
 
 namespace QuestMateAPI.Application.Services.SocialLogin
 {
@@ -25,16 +25,10 @@ namespace QuestMateAPI.Application.Services.SocialLogin
             if (existingAccount == null)
             {
                 // 신규 사용자 생성
-                // create extra data from UserExtraData.
-                UserExtraData extraData = new UserExtraData
-                {
-                    avatarNumber = Random.Shared.Next(0, 40 + 1)
-                };
+                int avatarNumber = Random.Shared.Next(0, 40 + 1);
+                string nickname = $"User{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
 
-                // convert extraData to JSON string
-                string extraDataJson = System.Text.Json.JsonSerializer.Serialize(extraData);
-
-                var userId = await _repository.CreateAccountUserAsync(extraDataJson);
+                var userId = await _repository.CreateAccountUserAsync(avatarNumber, nickname);
                 var socialAccountId = await _repository.CreateSocialAccountAsync(
                     userId,
                     (int)platform,
@@ -53,7 +47,8 @@ namespace QuestMateAPI.Application.Services.SocialLogin
                     RefreshToken = refreshToken,
                     RegDate = DateTime.UtcNow,
                     LoginDate = DateTime.UtcNow,
-                    ExtraData = extraData
+                    AvatarNumber = avatarNumber,
+                    Nickname = nickname
                 };
             }
             else
@@ -66,10 +61,13 @@ namespace QuestMateAPI.Application.Services.SocialLogin
 
                 await _repository.UpdateSocialAccountAsync(platformUserId, accessToken, refreshToken);
                 await _repository.UpdateAccountUserLoginDateAsync(existingAccount.UserId);
+                SocialAccount? socialAccount = await _repository.GetByPlatformUserIdAsync((int)platform, platformUserId);
 
                 existingAccount.AccessToken = accessToken;
                 existingAccount.RefreshToken = refreshToken;
                 existingAccount.LoginDate = DateTime.UtcNow;
+                existingAccount.AvatarNumber = socialAccount?.AvatarNumber;
+                existingAccount.Nickname = socialAccount?.Nickname;
 
                 Console.WriteLine($"Updated SocialAccount: Id={existingAccount.Id}, UserId={existingAccount.UserId}");
 

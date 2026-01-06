@@ -35,17 +35,21 @@ export default function GoogleCallbackPage() {
         const response = await api.get(`/GoogleCallback?code=${code}`);
 
         // 3. 서버에서 받은 토큰과 사용자 정보 저장
-        const { accessToken, userId } = response.data; 
+        const { accessToken, userId, avatarNumber, nickname } = response.data; 
 
         console.log("응답 데이터:", response.data);
 
         if (accessToken && userId) {
           // ★ 여기서 스토어에 저장 (싱글톤 업데이트)
-          setAuth({ id: userId, email: "", nickname: "nickname" }, accessToken);
+          setAuth({ id: userId, email: "", nickname: nickname }, accessToken);
 
           // 로컬 스토리지에도 저장 (하위 호환성)
           localStorage.setItem("accessToken", accessToken);
+          localStorage.setItem("userId", userId.toString());
           localStorage.setItem("isLoggedIn", "true");
+          
+          localStorage.setItem("avatarNumber", avatarNumber);
+          localStorage.setItem("nickname", nickname);
 
           // 홈으로 리다이렉트
           router.push(state);

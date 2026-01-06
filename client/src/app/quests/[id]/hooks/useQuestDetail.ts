@@ -68,24 +68,15 @@ const mapDataToViewModel = (data: QuestDetailDto, myId?: number): QuestViewModel
     icon: data.category === 0 ? "/icon_health.png" : data.category === 1 ? "/icon_study.png" : "/icon_living.png",
 
     participants: data.participants.map((p) => {
-      let avatarNumber = 0;
-      try {
-        if (p.extraData) {
-          const parsed = JSON.parse(p.extraData);
-          avatarNumber = parsed.avatarNumber ?? 0;
-        }
-      } catch (e) {
-        avatarNumber = 0;
-      }
-
       return {
         userId: p.userId,
         name: p.nickname || `유저 ${p.userId}`,
-        avatar: p.profileImageUrl || getRandomAvatar(avatarNumber),
+        avatar: p.profileImageUrl || getRandomAvatar(p.avatarNumber),
         current: p.currentCount,
         isMe: myId ? myId === p.userId : false,
         isHost: p.isHost,
-        extraData: p.extraData,
+        avatarNumber: p.avatarNumber,
+        nickname: p.nickname
       };
     }),
 
