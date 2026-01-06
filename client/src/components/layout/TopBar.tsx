@@ -7,6 +7,7 @@ import { useAuthStore } from "../../store/useAuthStore";
 import { useModalStore } from "../../store/useModalStore";
 import LoginModal from "../LoginModal";
 import UserAvatar from "../UserAvatar";
+import { AVATAR_ICONS } from "../../lib/avatarIcons";
 
 export default function TopBar() {
   const router = useRouter();
@@ -53,17 +54,8 @@ export default function TopBar() {
     };
   }, [isAvatarModalOpen]);
 
-  // 아바타 아이콘 목록
-  const avatarIcons = [
-    "/usericon/type03_calendar01.png",
-    "/usericon/type03_default01.png",
-    "/usericon/type03_default02.png",
-    "/usericon/type03_default04.png",
-    "/usericon/type03_footprint.png",
-    "/usericon/type03_footprint02.png",
-    "/usericon/type03_pencil01.png",
-    "/usericon/type03_footprint02.png",
-  ];
+  // 아바타 아이콘 목록 (공용)
+  const avatarIcons = AVATAR_ICONS;
 
   const handleAvatarSelect = async (index: number) => {
     setAvatarNumber(index);
@@ -169,7 +161,7 @@ export default function TopBar() {
                   className="absolute top-full right-0 mt-2 bg-white border-2 border-[#e8ddc9] rounded-lg shadow-lg p-3 z-[60]"
                   style={{ width: '200px' }}
                 >
-                <h3 className="text-sm font-bold text-[#6e5238] mb-2">아이콘 선택</h3>
+                <h3 className="text-sm font-bold text-[#6e5238] mb-2">아바타 선택</h3>
                 <div className="grid grid-cols-4 gap-2">
                   {avatarIcons.map((icon, index) => (
                     <button
