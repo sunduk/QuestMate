@@ -19,7 +19,7 @@ export default function TopBar() {
   // extraData에서 avatarNumber 가져오기
   const [avatarNumber, setAvatarNumber] = useState<number>(0);
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
-  const avatarModalRef = useRef<HTMLDivElement>(null);
+  const avatarWrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -39,7 +39,7 @@ export default function TopBar() {
   // 모달 바깥 클릭 감지
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (avatarModalRef.current && !avatarModalRef.current.contains(event.target as Node)) {
+      if (avatarWrapperRef.current && !avatarWrapperRef.current.contains(event.target as Node)) {
         setIsAvatarModalOpen(false);
       }
     };
@@ -158,17 +158,17 @@ export default function TopBar() {
         {/* 유저 아이콘 (로그인 시에만 표시) */}
         {isLoggedIn && (
           <div className="relative">
-            <button onClick={() => setIsAvatarModalOpen(!isAvatarModalOpen)}>
-              <UserAvatar avatarNumber={avatarNumber} size={36} className="cursor-pointer hover:brightness-110" />
-            </button>
-            
-            {/* 아바타 선택 모달 */}
-            {isAvatarModalOpen && (
-              <div 
-                ref={avatarModalRef}
-                className="absolute top-full right-0 mt-2 bg-white border-2 border-[#e8ddc9] rounded-lg shadow-lg p-3 z-[60]"
-                style={{ width: '200px' }}
-              >
+            <div ref={avatarWrapperRef}>
+              <button onClick={() => setIsAvatarModalOpen(!isAvatarModalOpen)}>
+                <UserAvatar avatarNumber={avatarNumber} size={36} className="cursor-pointer hover:brightness-110" />
+              </button>
+
+              {/* 아바타 선택 모달 */}
+              {isAvatarModalOpen && (
+                <div 
+                  className="absolute top-full right-0 mt-2 bg-white border-2 border-[#e8ddc9] rounded-lg shadow-lg p-3 z-[60]"
+                  style={{ width: '200px' }}
+                >
                 <h3 className="text-sm font-bold text-[#6e5238] mb-2">아이콘 선택</h3>
                 <div className="grid grid-cols-4 gap-2">
                   {avatarIcons.map((icon, index) => (
@@ -185,6 +185,7 @@ export default function TopBar() {
                 </div>
               </div>
             )}
+          </div>
           </div>
         )}
         
