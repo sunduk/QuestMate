@@ -21,6 +21,7 @@
         public string Comment { get; set; }        // 코멘트
         public DateTime CreatedAt { get; set; }   // 생성일시
         public int AvatarNumber { get; set; }   // 유저 아바타 번호
+        public string Nickname { get; set; }      // 유저 닉네임
     }
 
     // 2. 퀘스트 상세 정보 (본체)

@@ -468,7 +468,8 @@ namespace QuestMateAPI.Infrastructure.Repositories
                     qv.image_url,
                     qv.comment,
                     qv.created_at,
-                    u.avatar_number
+                    u.avatar_number,
+                    u.nickname
                 FROM quest_verification qv
                 JOIN user u ON qv.user_id = u.id
                 WHERE qv.quest_id = @QuestId

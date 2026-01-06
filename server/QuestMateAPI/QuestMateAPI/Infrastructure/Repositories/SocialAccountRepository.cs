@@ -46,7 +46,7 @@ namespace QuestMateAPI.Infrastructure.Repositories
                 VALUES (UTC_TIMESTAMP(), UTC_TIMESTAMP(), @AvatarNumber, @Nickname);
                 SELECT LAST_INSERT_ID();";
 
-            return await conn.ExecuteScalarAsync<long>(sql, new { avatarNumber, nickname });
+            return await conn.ExecuteScalarAsync<long>(sql, new { AvatarNumber = avatarNumber, Nickname = nickname });
         }
 
         public async Task<long> CreateSocialAccountAsync(long accountUserId, int platform, string platformUserId, string accessToken, string refreshToken)
@@ -98,6 +98,18 @@ namespace QuestMateAPI.Infrastructure.Repositories
                 WHERE id = @UserId";
 
             await conn.ExecuteAsync(sql, new { UserId = accountUserId });
+        }
+
+        public async Task UpdateAccountNicknameAsync(long accountUserId, string nickname)
+        {
+            using var conn = _context.CreateConnection();
+
+            var sql = @"
+                UPDATE User
+                SET nickname = @Nickname
+                WHERE id = @UserId";
+
+            await conn.ExecuteAsync(sql, new { UserId = accountUserId, Nickname = nickname });
         }
     }
 }

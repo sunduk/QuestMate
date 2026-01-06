@@ -18,6 +18,7 @@ export interface VerificationDto {
   comment: string;
   createdAt: string;
   avatarNumber: number;
+  nickname: string;
 }
 
 export interface QuestDetailDto {

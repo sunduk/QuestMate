@@ -102,7 +102,7 @@ const mapDataToViewModel = (data: QuestDetailDto, myId?: number): QuestViewModel
         id: v.id,
         userId: v.userId,
         isMine: myId ? myId === v.userId : false,
-        userName: v.userName || "이름 없음",
+        userName: v.nickname || "이름 없음",
         imageUrl: fullImageUrl,
         comment: v.comment,
         createdAt: new Date(dateStr).toLocaleString("ko-KR", {

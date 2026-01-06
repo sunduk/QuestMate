@@ -9,5 +9,6 @@ namespace QuestMateAPI.Application.Interfaces.Repositories
         Task<long> CreateSocialAccountAsync(long accountUserId, int platform, string platformUserId, string accessToken, string refreshToken);
         Task UpdateSocialAccountAsync(string platformUserId, string accessToken, string refreshToken);
         Task UpdateAccountUserLoginDateAsync(long accountUserId);
+        Task UpdateAccountNicknameAsync(long accountUserId, string nickname);
     }
 }

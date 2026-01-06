@@ -4,6 +4,7 @@ import UserAvatar from "@/src/components/UserAvatar";
 import { useState, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import { inquiryDetail, inquiryEmail, developerDetail, privacyDetail } from "./details";
+import { useAuthStore } from "@/src/store/useAuthStore";
 
 function AutoFitText({
   children,
@@ -55,7 +56,7 @@ function AutoFitText({
   );
 }
 
-export default function QuestListPage() {
+export default function SettingPage() {  const user = useAuthStore((state) => state.user);
   return (
     <div className="min-h-screen w-full bg-cover bg-center bg-no-repeat flex flex-col items-center px-2 py-2 pb-20"
       style={{ backgroundImage: "url('/home_bg.png')" }}>
@@ -70,49 +71,47 @@ export default function QuestListPage() {
 
         {/* ===== 상단 50% : 유저 정보 ===== */}
         <section className="mb-8">
-          <div 
-            className="bg-[#a06624]/10 backdrop-blur-sm shadow-md flex items-center gap-4 rounded-2xl pt-3 pb-3 pl-3"
-            >
+          {user ? (
+            <div 
+              className="bg-[#a06624]/10 backdrop-blur-sm shadow-md flex items-center gap-4 rounded-2xl pt-3 pb-3 pl-3"
+              >
 
-            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4">
+                {/* 프로필 아이콘 */}
+                <UserAvatar avatarNumber={user.avatarNumber || 15} size={80} className="cursor-pointer hover:brightness-110" />
+              </div>
 
-              {/* 프로필 아이콘 */}
-              <UserAvatar avatarNumber={15} size={80} className="cursor-pointer hover:brightness-110" />
+              {/* 닉네임 영역 */}
+              <div className="mt-1 flex items-center gap-3">
+                <div className="flex-1 rounded-full bg-[#fff6e8] pl-6 pr-1 py-2">
+                  <div className="flex items-center justify-between mt-0 h-8">
 
-              {/* 유저 정보 */}
-              {/* <div className="flex-1">
-                <p className="text-sm text-[#8b6a4a]">User ID</p>
-                <p className="font-semibold text-[#5b3a1b]">
-                  UserID12345
-                </p>
-              </div> */}
-            </div>
+                      <AutoFitText className="font-semibold text-[#583312] text-sl text-shadow-md w-32" max={16} min={10}>
+                        {user.nickname}
+                      </AutoFitText>
 
-            {/* 닉네임 영역 */}
-            <div className="mt-1 flex items-center gap-3">
-              <div className="flex-1 rounded-full bg-[#fff6e8] pl-6 pr-1 py-2">
-                <div className="flex items-center justify-between mt-0 h-8">
-
-                    <AutoFitText className="font-semibold text-[#583312] text-sl text-shadow-md w-32" max={16} min={10}>
-                      태풍의그라운드
-                    </AutoFitText>
-
-                    <button
-                        className="w-23 h-8 text-white text-sm font-semibold text-shadow-md text-shadow-[#58534f] transition active:scale-95 "
-                        style={{ 
-                            backgroundImage: "url('/setting_button_green.png')", 
-                            backgroundSize: '100% 100%', 
-                            backgroundPosition: 'center', 
-                            backgroundRepeat: 'no-repeat'
-                        }}
-                        >
-                        닉네임 변경
-                    </button>
+                      <button
+                          className="w-23 h-8 text-white text-sm font-semibold text-shadow-md text-shadow-[#58534f] transition active:scale-95 "
+                          style={{ 
+                              backgroundImage: "url('/setting_button_green.png')", 
+                              backgroundSize: '100% 100%', 
+                              backgroundPosition: 'center', 
+                              backgroundRepeat: 'no-repeat'
+                          }}
+                          >
+                          닉네임 변경
+                      </button>
+                  </div>
                 </div>
               </div>
-            </div>
 
-          </div>
+            </div>
+          ) : (
+            <div className="bg-[#f7ecd9]/30 backdrop-blur-sm shadow-md rounded-2xl p-6 text-center">
+              <p className="text-[#5b3a1b] text-lg font-medium mb-2">로그인이 필요합니다</p>
+              <p className="text-[#8b6a4a] text-sm">프로필 설정을 보려면 먼저 로그인해주세요.</p>
+            </div>
+          )}
         </section>
 
         {/* ===== 하단 50% : 설정 메뉴 ===== */}
