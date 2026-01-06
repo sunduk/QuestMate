@@ -41,7 +41,7 @@ export default function GoogleCallbackPage() {
 
         if (accessToken && userId) {
           // ★ 여기서 스토어에 저장 (싱글톤 업데이트)
-          setAuth({ id: userId, email: "", nickname: nickname }, accessToken);
+          setAuth({ id: userId, email: "", nickname: nickname, avatarNumber: avatarNumber }, accessToken);
 
           // 로컬 스토리지에도 저장 (하위 호환성)
           localStorage.setItem("accessToken", accessToken);

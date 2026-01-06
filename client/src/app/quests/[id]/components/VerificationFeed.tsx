@@ -35,7 +35,8 @@ export const VerificationFeed = ({
   onRemoveEditImage,
 }: VerificationFeedProps) => {
 
-  const { token: storeToken, logout: storeLogout } = useAuthStore();
+  const { token: storeToken, user } = useAuthStore();
+  const myAvatarNumber = user?.avatarNumber ?? 0;
     
   // 스토어의 토큰 존재 여부로 로그인 상태 판단
   const isLoggedIn = !!storeToken;
@@ -64,7 +65,11 @@ export const VerificationFeed = ({
           {/* 유저 정보 */}
           <div className="flex items-center gap-2 p-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-lg border border-[#929675]">
-              <img src ={getAvatarPath(v.avatarNumber)} alt="User Avatar" className="h-16 w-16 object-contain" />
+              <img 
+                src={v.isMine ? getAvatarPath(myAvatarNumber) : getAvatarPath(v.avatarNumber)} 
+                alt="User Avatar" 
+                className="h-16 w-16 object-contain" 
+              />
             </div>
             <div className="flex flex-col">
               <span className="text-xs font-bold text-slate-800">{v.userName}</span>

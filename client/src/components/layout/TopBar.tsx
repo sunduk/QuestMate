@@ -13,31 +13,16 @@ import api from "../../lib/axios"; // 우리가 만든 Axios 인스턴스
 
 export default function TopBar() {
   const router = useRouter();
-  const { token: storeToken, logout: storeLogout, user } = useAuthStore();
+  const { token: storeToken, logout: storeLogout, user, setAvatarNumber: setStoreAvatarNumber } = useAuthStore();
   const { isLoginModalOpen, openLoginModal, closeLoginModal } = useModalStore();
   
   // 스토어의 토큰 존재 여부로 로그인 상태 판단
   const isLoggedIn = !!storeToken;
 
-  // extraData에서 avatarNumber 가져오기
-  const [avatarNumber, setAvatarNumber] = useState<number>(0);
+  // 스토어에서 avatarNumber 가져오기 (없으면 localStorage fallback)
+  const avatarNumber = user?.avatarNumber ?? Number(localStorage.getItem("avatarNumber")) ?? 0;
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const avatarWrapperRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      // localStorage에서 extraData 가져오기
-      const avatarNumber = localStorage.getItem("avatarNumber");
-      
-      if (avatarNumber) {
-        try {
-          setAvatarNumber(Number(avatarNumber));
-        } catch (error) {
-          console.error("extraData 파싱 실패:", error);
-        }
-      }
-    }
-  }, [isLoggedIn]);
 
   // 모달 바깥 클릭 감지
   useEffect(() => {
@@ -59,22 +44,17 @@ export default function TopBar() {
   // 아바타 아이콘 목록 (공용)
   const avatarIcons = AVATAR_ICONS;
 
-  const [formData, setFormData] = useState({
-    avatarNumber: avatarNumber,
-  });
-
   const handleAvatarSelect = async (index: number) => {
     // 서버에 업데이트 (선택사항)
     try {
       // 1. API 호출 (자동으로 헤더에 토큰 들어감)
-      const newFormData = { ...formData, avatarNumber: index };
-      const response = await api.post("/avatar/change", newFormData);
+      const response = await api.post("/avatar/change", { avatarNumber: index });
 
       //console.log("퀘스트 생성 완료:", response.data);
       
-      // 2. 성공 시...
-      setAvatarNumber(index);
+      // 2. 성공 시 스토어와 localStorage 모두 업데이트 (다른 컴포넌트도 자동 갱신)
       localStorage.setItem("avatarNumber", index.toString());
+      setStoreAvatarNumber(index);
     } catch (error) {
       console.error("생성 실패:", error);
       if (isAxiosError(error)) {

@@ -1,4 +1,6 @@
 import { ParticipantViewModel } from "../types";
+import { useAuthStore } from "@/src/store/useAuthStore";
+import { getAvatarPath } from "@/src/lib/avatarIcons";
 
 interface ParticipantListProps {
   participants: ParticipantViewModel[];
@@ -7,6 +9,9 @@ interface ParticipantListProps {
 }
 
 export const ParticipantList = ({ participants, targetCount, durationDays }: ParticipantListProps) => {
+  const { user } = useAuthStore();
+  const myAvatarNumber = user?.avatarNumber ?? 0;
+
   return (
     <>
       <div className="mb-4 flex items-center justify-between">
@@ -32,7 +37,11 @@ export const ParticipantList = ({ participants, targetCount, durationDays }: Par
                   }`}
                   style={isCompleted ? { backgroundImage: "url('/quest_icon_gold_border_finish.png')" } : {}}
                 >
-                  <img src={p.avatar} alt={`${p.name} avatar`} className="rounded-full w-10 h-10" />
+                  <img 
+                    src={p.isMe ? getAvatarPath(myAvatarNumber) : p.avatar} 
+                    alt={`${p.name} avatar`} 
+                    className="rounded-full w-10 h-10" 
+                  />
                 </div>
               </div>
               <div className="flex-1 flex flex-col gap-1.5">
