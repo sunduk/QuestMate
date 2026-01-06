@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useModalStore } from "../../store/useModalStore";
@@ -18,6 +18,8 @@ export default function TopBar() {
 
   // extraData에서 avatarNumber 가져오기
   const [avatarNumber, setAvatarNumber] = useState<number>(0);
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+  const avatarModalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -33,6 +35,58 @@ export default function TopBar() {
       }
     }
   }, [isLoggedIn]);
+
+  // 모달 바깥 클릭 감지
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (avatarModalRef.current && !avatarModalRef.current.contains(event.target as Node)) {
+        setIsAvatarModalOpen(false);
+      }
+    };
+
+    if (isAvatarModalOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isAvatarModalOpen]);
+
+  // 아바타 아이콘 목록
+  const avatarIcons = [
+    "/usericon/type03_calendar01.png",
+    "/usericon/type03_default01.png",
+    "/usericon/type03_default02.png",
+    "/usericon/type03_default04.png",
+    "/usericon/type03_footprint.png",
+    "/usericon/type03_footprint02.png",
+    "/usericon/type03_pencil01.png",
+    "/usericon/type03_footprint02.png",
+  ];
+
+  const handleAvatarSelect = async (index: number) => {
+    setAvatarNumber(index);
+    localStorage.setItem("avatarNumber", index.toString());
+    
+    // 서버에 업데이트 (선택사항)
+    try {
+      const token = localStorage.getItem("accessToken") || storeToken;
+      await axios.put(
+        `https://localhost:7173/api/users/${user?.id}/avatar`,
+        { avatarNumber: index },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+    } catch (error) {
+      console.error("아바타 업데이트 실패:", error);
+    }
+    
+    setIsAvatarModalOpen(false);
+  };
 
   const handleAuthAction = async () => {
     if (!isLoggedIn) {
@@ -102,7 +156,37 @@ export default function TopBar() {
         <button className="text-xl hover:text-yellow-400">⚙️</button> */}
         
         {/* 유저 아이콘 (로그인 시에만 표시) */}
-        {isLoggedIn && <UserAvatar avatarNumber={avatarNumber} size={36} />}
+        {isLoggedIn && (
+          <div className="relative">
+            <button onClick={() => setIsAvatarModalOpen(!isAvatarModalOpen)}>
+              <UserAvatar avatarNumber={avatarNumber} size={36} className="cursor-pointer hover:brightness-110" />
+            </button>
+            
+            {/* 아바타 선택 모달 */}
+            {isAvatarModalOpen && (
+              <div 
+                ref={avatarModalRef}
+                className="absolute top-full right-0 mt-2 bg-white border-2 border-[#e8ddc9] rounded-lg shadow-lg p-3 z-[60]"
+                style={{ width: '200px' }}
+              >
+                <h3 className="text-sm font-bold text-[#6e5238] mb-2">아이콘 선택</h3>
+                <div className="grid grid-cols-4 gap-2">
+                  {avatarIcons.map((icon, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleAvatarSelect(index)}
+                      className={`relative w-10 h-10 rounded-full overflow-hidden border-2 ${
+                        avatarNumber === index ? 'border-[#f59e0b]' : 'border-[#e8ddc9]'
+                      } hover:border-[#f59e0b] transition`}
+                    >
+                      <img src={icon} alt={`Avatar ${index}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
         
         <button 
           onClick={handleAuthAction}
