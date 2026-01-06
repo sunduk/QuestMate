@@ -6,7 +6,7 @@ export default function BottomNav() {
   const menus = [
     { name: "홈", icon: <img src="/button_home.png" alt="홈" className="w-12 h-12 object-contain" />, active: true, href:"/" },
     { name: "노트", icon: <img src="/button_menu_write.png" alt="기록 만들기" className="w-12 h-12 object-contain" />, active: false, href:"/quests" },
-    { name: "문의 사항", icon: <img src="/button_menu_question.png" alt="문의 사항" className="w-12 h-12 object-contain" />, active: false, href:"/shop" },
+    { name: "설정", icon: <img src="/button_menu_setting.png" alt="문의 사항" className="w-12 h-12 object-contain" />, active: false, href:"/setting" },
     // { name: "상점", icon: "🛒", active: false, href:"/shop" },
     // { name: "내 방", icon: "🪑", active: false, href:"/myroom" },
   ];
