@@ -158,7 +158,7 @@ export default function TopBar() {
               {/* 아바타 선택 모달 */}
               {isAvatarModalOpen && (
                 <div 
-                  className="absolute top-full right-0 mt-2 bg-white border-2 border-[#e8ddc9] rounded-lg shadow-lg p-3 z-[60]"
+                  className="absolute top-full right-0 mt-2 bg-white border-2 border-[#e8ddc9] rounded-lg shadow-lg p-3 z-[60] max-h-90 overflow-y-auto"
                   style={{ width: '200px' }}
                 >
                 <h3 className="text-sm font-bold text-[#6e5238] mb-2">아바타 선택</h3>
