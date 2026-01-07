@@ -196,6 +196,44 @@ export default function SettingPage() {
     }
   };
 
+  const handleLogout = async () => {
+    // 로그아웃 처리
+    try {
+      // 1. 로컬 스토리지에서 토큰 꺼내기
+      const token = localStorage.getItem("accessToken") || useAuthStore.getState().token;
+
+      if (!token) {
+        useAuthStore.getState().logout();
+        localStorage.setItem("isLoggedIn", "false");
+        router.replace("/");
+        return;
+      }
+
+      // 2. 로그아웃 요청
+      await api.post(
+        "https://localhost:7173/api/auth/logout", 
+        {}, 
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+    } catch (error) {
+      console.error("로그아웃 실패:", error);
+    } finally {
+      // 5. 로컬 스토리지 및 스토어 정리
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("userExtraData");
+      localStorage.setItem("isLoggedIn", "false");
+      useAuthStore.getState().logout();
+
+      // 4. 첫 페이지로 강제 이동
+      router.replace("/"); 
+    }
+  };
+
   
 
   // [Effect] 페이지 로드 시 API 호출
@@ -380,6 +418,7 @@ export default function SettingPage() {
             <SettingItem
               icon="/setting_icon_logout.png"
               label="로그아웃"
+              onClick={handleLogout}
             />
           </div>
         </section>
@@ -395,11 +434,13 @@ function SettingItem({
   label,
   detail,
   email,
+  onClick,
 }: {
   icon: string;
   label: string;
   detail?: string;
   email?: string;
+  onClick?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -407,7 +448,13 @@ function SettingItem({
   return (
     <div>
       <button
-        onClick={() => detail && setOpen((s) => !s)}
+        onClick={() => {
+          if (onClick) {
+            onClick();
+          } else if (detail) {
+            setOpen((s) => !s);
+          }
+        }}
         aria-expanded={open}
         className="w-full flex items-center gap-3 rounded-xl bg-[#fff6e8] px-4 py-3 text-left hover:bg-[#f2e2c9] transition"
       >
