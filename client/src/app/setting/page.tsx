@@ -5,6 +5,16 @@ import { useState, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import { inquiryDetail, inquiryEmail, developerDetail, privacyDetail } from "./details";
 import { useAuthStore } from "@/src/store/useAuthStore";
+import api from "@/src/lib/axios";
+
+// ----------------------------------------------------------------------
+// [데이터 모델] 서버 DTO 정의
+// ----------------------------------------------------------------------
+interface UserDto {
+  id: number;
+  avatarNumber?: number | null;
+  nickname?: string | null;
+}
 
 function AutoFitText({
   children,
@@ -56,7 +66,60 @@ function AutoFitText({
   );
 }
 
-export default function SettingPage() {  const user = useAuthStore((state) => state.user);
+export default function SettingPage() {
+  const user = useAuthStore((state) => state.user);
+
+  const fetchUserInfo = async () => {
+    try {
+      // 1. API 요청 (GET /auth/me)
+      const response = await api.get('/auth/me');
+      const dto = response.data as UserDto;
+
+      if (dto) {
+        console.log("유저 정보 로드:", dto);
+        // 2. 데이터 파싱 (Server DTO -> Client Store)
+        const currentUser = useAuthStore.getState().user;
+
+        if (currentUser) {
+          // user 객체를 한 번에 업데이트 (UI 갱신 보장)
+          const updatedUser = { ...currentUser };
+          
+          if (typeof dto.avatarNumber === 'number') {
+            updatedUser.avatarNumber = dto.avatarNumber;
+          }
+          
+          if (dto.nickname) {
+            updatedUser.nickname = dto.nickname;
+          }
+
+          useAuthStore.setState({ user: updatedUser });
+        }
+      }
+    } catch (error) {
+      console.error("API Error:", error);
+    }
+  };
+
+  // [Effect] 페이지 로드 시 API 호출
+  // Also refresh when other parts of the app emit a `user:update` event,
+  // when localStorage changes (other tabs), or when window gains focus.
+  useEffect(() => {
+    fetchUserInfo();
+
+    const onUserUpdate = () => fetchUserInfo();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'auth-storage' || e.key === 'accessToken') fetchUserInfo();
+    };
+
+    window.addEventListener('user:update', onUserUpdate);
+    window.addEventListener('storage', onStorage);
+
+    return () => {
+      window.removeEventListener('user:update', onUserUpdate);
+      window.removeEventListener('storage', onStorage);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen w-full bg-cover bg-center bg-no-repeat flex flex-col items-center px-2 py-2 pb-20"
       style={{ backgroundImage: "url('/home_bg.png')" }}>
@@ -82,9 +145,10 @@ export default function SettingPage() {  const user = useAuthStore((state) => st
               </div>
 
               {/* 닉네임 영역 */}
-              <div className="mt-1 flex items-center gap-3">
-                <div className="flex-1 rounded-full bg-[#fff6e8] pl-6 pr-1 py-2">
-                  <div className="flex items-center justify-between mt-0 h-8">
+              <div className="mt-1 flex flex-col gap-2">
+                <div className="text-sm text-[#5b3a1b] pl-3">노트에 쓸 내 이름</div>
+                <div className="flex-1 rounded-full bg-[#fff6e8] h-10 pl-6 pr-1 py-0 align-middle flex items-center shadow-md">
+                  <div className="flex items-center justify-between mt-0 h-10">
 
                       <AutoFitText className="font-semibold text-[#583312] text-sl text-shadow-md w-32" max={16} min={10}>
                         {user.nickname}
@@ -99,7 +163,7 @@ export default function SettingPage() {  const user = useAuthStore((state) => st
                               backgroundRepeat: 'no-repeat'
                           }}
                           >
-                          닉네임 변경
+                          이름 변경
                       </button>
                   </div>
                 </div>

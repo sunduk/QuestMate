@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using QuestMateAPI.Application.DTOs.Auth;
+using QuestMateAPI.Application.Interfaces.Repositories;
 
 namespace QuestMateAPI.Controllers
 {
@@ -78,6 +79,21 @@ namespace QuestMateAPI.Controllers
                 return Unauthorized(result);
 
             return Ok(result);
+        }
+
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> Me()
+        {
+            var userIdStr = User.FindFirst("uid")?.Value;
+            if (string.IsNullOrEmpty(userIdStr) || !long.TryParse(userIdStr, out long userId))
+            {
+                return Unauthorized();
+            }
+
+            var dto = await _authService.GetMyInfoAsync(userId);
+            if (dto == null) return NotFound();
+            return Ok(dto);
         }
     }
 }

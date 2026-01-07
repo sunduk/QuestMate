@@ -7,6 +7,7 @@ using QuestMateAPI.Application.Security;
 using QuestMateAPI.Domain.Entities;
 using QuestMateAPI.Infrastructure.Repositories;
 using System.Security.Claims;
+using QuestMateAPI.Application.DTOs.User;
 
 namespace QuestMateAPI.Application.Services
 {
@@ -165,6 +166,19 @@ namespace QuestMateAPI.Application.Services
                 Success = true,
                 AccessToken = accessToken,
                 ExpiresIn = _jwt._options.AccessTokenMinutes * 60
+            };
+        }
+
+        public async Task<UserDto?> GetMyInfoAsync(long userId)
+        {
+            var user = await _userRepo.GetByIdAsync(userId);
+            if (user == null) return null;
+
+            return new UserDto
+            {
+                Id = user.Id,
+                AvatarNumber = user.AvatarNumber,
+                Nickname = user.Nickname
             };
         }
     }

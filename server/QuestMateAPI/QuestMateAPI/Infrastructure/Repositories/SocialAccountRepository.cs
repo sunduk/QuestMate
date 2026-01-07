@@ -37,16 +37,25 @@ namespace QuestMateAPI.Infrastructure.Repositories
             return await conn.QuerySingleOrDefaultAsync<SocialAccount>(sql, new { Platform = platform, PlatformUserId = platformUserId });
         }
 
-        public async Task<long> CreateAccountUserAsync(int avatarNumber, string nickname)
+        public async Task<(long userId, string nickname)> CreateAccountUserAsync(int avatarNumber)
         {
             using var conn = _context.CreateConnection();
+
+            var sqlNickname = @"
+                SELECT nickname
+                FROM preserved_nickname
+                WHERE avatar_number = @AvatarNumber
+                LIMIT 1";
+
+            string nickname = await conn.QuerySingleOrDefaultAsync<string>(sqlNickname, new { AvatarNumber = avatarNumber }) ?? "User" + DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
 
             var sql = @"
                 INSERT INTO User (reg_date, login_date, avatar_number, nickname) 
                 VALUES (UTC_TIMESTAMP(), UTC_TIMESTAMP(), @AvatarNumber, @Nickname);
                 SELECT LAST_INSERT_ID();";
 
-            return await conn.ExecuteScalarAsync<long>(sql, new { AvatarNumber = avatarNumber, Nickname = nickname });
+            var id = await conn.ExecuteScalarAsync<long>(sql, new { AvatarNumber = avatarNumber, Nickname = nickname });
+            return (id, nickname);
         }
 
         public async Task<long> CreateSocialAccountAsync(long accountUserId, int platform, string platformUserId, string accessToken, string refreshToken)
