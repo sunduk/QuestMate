@@ -110,7 +110,7 @@ export default function TopBar() {
         {isLoggedIn && (
           <div className="relative">
             <div ref={avatarWrapperRef}>
-              <button onClick={() => setIsAvatarModalOpen(!isAvatarModalOpen)}>
+              <button onClick={() => router.push("/setting")}>
                 <UserAvatar avatarNumber={avatarNumber} size={36} className="cursor-pointer hover:brightness-110" />
               </button>
 

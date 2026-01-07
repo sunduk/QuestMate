@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { inquiryDetail, inquiryEmail, developerDetail, privacyDetail } from "./details";
 import { useAuthStore } from "@/src/store/useAuthStore";
 import api from "@/src/lib/axios";
+import Image from 'next/image';
 
 // ----------------------------------------------------------------------
 // [데이터 모델] 서버 DTO 정의
@@ -249,6 +250,7 @@ export default function SettingPage() {
                     isOpen={isAvatarModalOpen}
                     onClose={() => setIsAvatarModalOpen(false)}
                     currentAvatarNumber={user.avatarNumber || 15}
+                    anchorRef={avatarWrapperRef}
                   />
                 </div>
               </div>
@@ -270,7 +272,7 @@ export default function SettingPage() {
                                 e.preventDefault();
                                 try {
                                   await handleChangeNickname(nicknameInput);
-                                } catch (err) {
+                                } catch {
                                   // ignore
                                 }
                                 setIsEditingNickname(false);
@@ -400,7 +402,7 @@ function SettingItem({
         aria-expanded={open}
         className="w-full flex items-center gap-3 rounded-xl bg-[#fff6e8] px-4 py-3 text-left hover:bg-[#f2e2c9] transition"
       >
-        <img src={icon} alt="" className="w-6 h-6 opacity-80 mr-3" />
+        <Image src={icon} alt="" width={24} height={24} className="w-6 h-6 opacity-80 mr-3" />
         <span className="flex-1 text-[#5b3a1b] font-medium">
           {label}
         </span>
@@ -416,7 +418,7 @@ function SettingItem({
               <div className="py-2 pl-3 bg-[#fffdf7] rounded-lg shadow-inner" style={{ whiteSpace: 'pre-line' }}>
                 <div className="flex items-center gap-2 justify-between">
                   <div className="flex items-center gap-2">
-                    <img src="/icon_email.png" alt="Email Icon" className="w-9" />
+                    <Image src="/icon_email.png" alt="Email Icon" width={36} height={36} className="w-9" />
                     <a href={`mailto:${email}`} className="text-[#5b3a1b] underline break-words text-base">{email}</a>
                   </div>
 
@@ -429,7 +431,7 @@ function SettingItem({
                           await navigator.clipboard.writeText(email);
                           setCopied(true);
                           setTimeout(() => setCopied(false), 2000);
-                        } catch (err) {
+                        } catch {
                           // ignore
                         }
                       }}
