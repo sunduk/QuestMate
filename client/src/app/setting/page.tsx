@@ -140,6 +140,22 @@ export default function SettingPage() {
     }
   };
 
+  // send nickname update to server and refresh local user data
+  const handleChangeNickname = async (newNickname: string) => {
+    try {
+      // POST to update nickname
+      await api.post('/userinfo/updatenickname', { Nickname: newNickname });
+
+      // refresh current user info from server to keep store in sync
+      await fetchUserInfo();
+
+      // notify other windows/components
+      window.dispatchEvent(new Event('user:update'));
+    } catch (error) {
+      console.error('Failed to update nickname:', error);
+    }
+  };
+
   // [Effect] 페이지 로드 시 API 호출
   // Also refresh when other parts of the app emit a `user:update` event,
   // when localStorage changes (other tabs), or when window gains focus.
@@ -244,6 +260,7 @@ export default function SettingPage() {
                               e.stopPropagation();
                               setIsEditingNickname(false);
                               setNicknameInput(user?.nickname ?? "");
+                              handleChangeNickname(nicknameInput);
                             }}
                             disabled={nicknameInput.trim().length <= 0}
                             hidden={nicknameInput.trim().length <= 0}

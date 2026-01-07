@@ -35,6 +35,8 @@ namespace QuestMateAPI.Controllers
             if (string.IsNullOrEmpty(userIdStr) || !long.TryParse(userIdStr, out long userId))
                 return Unauthorized();
 
+            dto.Nickname = dto.Nickname?.Trim();
+
             var result = await _userInfoService.UpdateNicknameAsync(userId, dto.Nickname ?? string.Empty);
             if (result == null) return BadRequest(new { Success = false, Error = "INVALID_NICKNAME" });
 
