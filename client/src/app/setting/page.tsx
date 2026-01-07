@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import UserAvatar from "@/src/components/UserAvatar";
 import AvatarSelectModal from "@/src/components/AvatarSelectModal";
 import { useState, useEffect, useRef } from "react";
@@ -69,6 +70,7 @@ function AutoFitText({
 }
 
 export default function SettingPage() {
+  const router = useRouter();
   const user = useAuthStore((state) => state.user);
 
   // nickname edit UI state
