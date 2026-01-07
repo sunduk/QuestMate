@@ -1,6 +1,7 @@
 "use client";
 
 import UserAvatar from "@/src/components/UserAvatar";
+import AvatarSelectModal from "@/src/components/AvatarSelectModal";
 import { useState, useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import { inquiryDetail, inquiryEmail, developerDetail, privacyDetail } from "./details";
@@ -76,6 +77,8 @@ export default function SettingPage() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const successTimeoutRef = useRef<number | null>(null);
+  const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
+  const avatarWrapperRef = useRef<HTMLDivElement | null>(null);
 
   // keep input synced with store when not editing
   useEffect(() => {
@@ -110,6 +113,23 @@ export default function SettingPage() {
     }, 0);
     return () => clearTimeout(t);
   }, [isEditingNickname]);
+
+  // avatar modal outside click handler
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (avatarWrapperRef.current && !avatarWrapperRef.current.contains(event.target as Node)) {
+        setIsAvatarModalOpen(false);
+      }
+    };
+
+    if (isAvatarModalOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isAvatarModalOpen]);
 
   const fetchUserInfo = async () => {
     try {
@@ -220,7 +240,17 @@ export default function SettingPage() {
 
               <div className="flex items-center gap-4">
                 {/* 프로필 아이콘 */}
-                <UserAvatar avatarNumber={user.avatarNumber || 15} size={80} className="cursor-pointer hover:brightness-110" />
+                <div className="relative" ref={avatarWrapperRef}>
+                  <button onClick={() => setIsAvatarModalOpen(!isAvatarModalOpen)}>
+                    <UserAvatar avatarNumber={user.avatarNumber || 15} size={80} className="cursor-pointer hover:brightness-110" />
+                  </button>
+                  
+                  <AvatarSelectModal 
+                    isOpen={isAvatarModalOpen}
+                    onClose={() => setIsAvatarModalOpen(false)}
+                    currentAvatarNumber={user.avatarNumber || 15}
+                  />
+                </div>
               </div>
 
               {/* 닉네임 영역 */}

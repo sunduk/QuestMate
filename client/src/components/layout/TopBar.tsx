@@ -3,17 +3,15 @@
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { isAxiosError } from "axios";
 import { useAuthStore } from "../../store/useAuthStore";
 import { useModalStore } from "../../store/useModalStore";
 import LoginModal from "../LoginModal";
 import UserAvatar from "../UserAvatar";
-import { AVATAR_ICONS } from "../../lib/avatarIcons";
-import api from "../../lib/axios"; // 우리가 만든 Axios 인스턴스
+import AvatarSelectModal from "../AvatarSelectModal";
 
 export default function TopBar() {
   const router = useRouter();
-  const { token: storeToken, logout: storeLogout, user, setAvatarNumber: setStoreAvatarNumber } = useAuthStore();
+  const { token: storeToken, logout: storeLogout, user } = useAuthStore();
   const { isLoginModalOpen, openLoginModal, closeLoginModal } = useModalStore();
   
   // 스토어의 토큰 존재 여부로 로그인 상태 판단
@@ -40,33 +38,6 @@ export default function TopBar() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isAvatarModalOpen]);
-
-  // 아바타 아이콘 목록 (공용)
-  const avatarIcons = AVATAR_ICONS;
-
-  const handleAvatarSelect = async (index: number) => {
-    // 서버에 업데이트 (선택사항)
-    try {
-      // 1. API 호출 (자동으로 헤더에 토큰 들어감)
-      const response = await api.post("/avatar/change", { avatarNumber: index });
-
-      //console.log("퀘스트 생성 완료:", response.data);
-      
-      // 2. 성공 시 스토어와 localStorage 모두 업데이트 (다른 컴포넌트도 자동 갱신)
-      localStorage.setItem("avatarNumber", index.toString());
-      setStoreAvatarNumber(index);
-    } catch (error) {
-      console.error("생성 실패:", error);
-      if (isAxiosError(error)) {
-         alert(`생성 실패: ${error.response?.data?.error || "서버 오류"}`);
-      } else {
-         alert("알 수 없는 오류가 발생했습니다.");
-      }
-    } finally {
-      // 3. 모달 닫기
-      setIsAvatarModalOpen(false);
-    }
-  };
 
   const handleAuthAction = async () => {
     if (!isLoggedIn) {
@@ -144,27 +115,11 @@ export default function TopBar() {
               </button>
 
               {/* 아바타 선택 모달 */}
-              {isAvatarModalOpen && (
-                <div 
-                  className="absolute top-full right-0 mt-2 bg-white border-2 border-[#e8ddc9] rounded-lg shadow-lg p-3 z-[60] max-h-90 overflow-y-auto"
-                  style={{ width: '200px' }}
-                >
-                <h3 className="text-sm font-bold text-[#6e5238] mb-2">아바타 선택</h3>
-                <div className="grid grid-cols-4 gap-2">
-                  {avatarIcons.map((icon, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleAvatarSelect(index)}
-                      className={`relative w-10 h-10 rounded-full overflow-hidden border-2 ${
-                        avatarNumber === index ? 'border-[#f59e0b]' : 'border-[#e8ddc9]'
-                      } hover:border-[#f59e0b] transition`}
-                    >
-                      <img src={icon} alt={`Avatar ${index}`} className="w-full h-full object-cover" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+              <AvatarSelectModal 
+                isOpen={isAvatarModalOpen}
+                onClose={() => setIsAvatarModalOpen(false)}
+                currentAvatarNumber={avatarNumber}
+              />
           </div>
           </div>
         )}
