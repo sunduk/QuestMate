@@ -74,6 +74,8 @@ export default function SettingPage() {
   const [nicknameInput, setNicknameInput] = useState<string>(user?.nickname ?? "");
   const editRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const successTimeoutRef = useRef<number | null>(null);
 
   // keep input synced with store when not editing
   useEffect(() => {
@@ -151,10 +153,21 @@ export default function SettingPage() {
 
       // notify other windows/components
       window.dispatchEvent(new Event('user:update'));
+      // show temporary success message on the button
+      setSuccessMessage("이름이 정상적으로 변경되었습니다.");
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
+      }
+      successTimeoutRef.current = window.setTimeout(() => {
+        setSuccessMessage(null);
+        successTimeoutRef.current = null;
+      }, 2000);
     } catch (error) {
       console.error('Failed to update nickname:', error);
     }
   };
+
+  
 
   // [Effect] 페이지 로드 시 API 호출
   // Also refresh when other parts of the app emit a `user:update` event,
@@ -173,6 +186,16 @@ export default function SettingPage() {
     return () => {
       window.removeEventListener('user:update', onUserUpdate);
       window.removeEventListener('storage', onStorage);
+    };
+  }, []);
+
+  // cleanup success timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (successTimeoutRef.current) {
+        clearTimeout(successTimeoutRef.current);
+        successTimeoutRef.current = null;
+      }
     };
   }, []);
 
@@ -202,7 +225,7 @@ export default function SettingPage() {
 
               {/* 닉네임 영역 */}
               <div className="mt-1 flex flex-col gap-2">
-                <div className="text-sm text-[#5b3a1b] pl-3">노트에 쓸 내 이름</div>
+                <div className="text-sm text-[#5b3a1b] pl-3">{successMessage ?? '노트에 쓸 내 이름'}</div>
                 <div className="flex-1 rounded-full bg-[#fff6e8] h-10 pl-6 pr-1 py-0 align-middle flex items-center shadow-md">
                   <div className="flex items-center justify-between mt-0 h-10">
 
@@ -212,11 +235,13 @@ export default function SettingPage() {
                             ref={inputRef}
                             value={nicknameInput}
                             onChange={(e) => setNicknameInput(e.target.value)}
-                            onKeyDown={(e) => {
+                            onKeyDown={async (e) => {
                               if (e.key === 'Enter') {
-                                const currentUser = useAuthStore.getState().user;
-                                if (currentUser) {
-                                  useAuthStore.setState({ user: { ...currentUser, nickname: nicknameInput } });
+                                e.preventDefault();
+                                try {
+                                  await handleChangeNickname(nicknameInput);
+                                } catch (err) {
+                                  // ignore
                                 }
                                 setIsEditingNickname(false);
                               } else if (e.key === 'Escape') {
