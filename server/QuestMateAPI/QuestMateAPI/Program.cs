@@ -5,6 +5,7 @@ using QuestMateAPI.Application.DTOs.Auth;
 using QuestMateAPI.Application.DTOs.Avatar;
 using QuestMateAPI.Application.DTOs.Quest;
 using QuestMateAPI.Application.Interfaces.Repositories;
+using QuestMateAPI.Application.Interfaces.Services;
 using QuestMateAPI.Application.Security;
 using QuestMateAPI.Application.Services;
 using QuestMateAPI.Application.Services.SocialLogin;
@@ -65,6 +66,9 @@ builder.Services.AddScoped<ICommonAuthService, CommonAuthService>();
 builder.Services.AddHttpClient<INaverAuthService, NaverAuthService>();
 builder.Services.AddHttpClient<IKakaoAuthService, KakaoAuthService>();
 builder.Services.AddHttpClient<IGoogleAuthService, GoogleAuthService>();
+// JwtTokenGenerator is registered below and used for JWT generation in services/controllers.
+// Remove old IJwtService registration.
+builder.Services.AddScoped<IUserInfoService, UserInfoService>();
 
 Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
 

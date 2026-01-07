@@ -69,6 +69,46 @@ function AutoFitText({
 export default function SettingPage() {
   const user = useAuthStore((state) => state.user);
 
+  // nickname edit UI state
+  const [isEditingNickname, setIsEditingNickname] = useState(false);
+  const [nicknameInput, setNicknameInput] = useState<string>(user?.nickname ?? "");
+  const editRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
+  // keep input synced with store when not editing
+  useEffect(() => {
+    if (!isEditingNickname) {
+      const newVal = user?.nickname ?? "";
+      if (newVal !== nicknameInput) {
+        const t = setTimeout(() => setNicknameInput(newVal), 0);
+        return () => clearTimeout(t);
+      }
+    }
+  }, [user?.nickname, isEditingNickname, nicknameInput]);
+
+  // cancel edit on outside click
+  useEffect(() => {
+    if (!isEditingNickname) return;
+    const onDocMouseDown = (e: MouseEvent) => {
+      if (editRef.current && !editRef.current.contains(e.target as Node)) {
+        setIsEditingNickname(false);
+        setNicknameInput(user?.nickname ?? "");
+      }
+    };
+    document.addEventListener('mousedown', onDocMouseDown);
+    return () => document.removeEventListener('mousedown', onDocMouseDown);
+  }, [isEditingNickname, user?.nickname]);
+
+  // focus and select input when entering edit mode
+  useEffect(() => {
+    if (!isEditingNickname) return;
+    const t = setTimeout(() => {
+      inputRef.current?.focus();
+      try { inputRef.current?.select(); } catch { /* ignore */ }
+    }, 0);
+    return () => clearTimeout(t);
+  }, [isEditingNickname]);
+
   const fetchUserInfo = async () => {
     try {
       // 1. API 요청 (GET /auth/me)
@@ -150,21 +190,76 @@ export default function SettingPage() {
                 <div className="flex-1 rounded-full bg-[#fff6e8] h-10 pl-6 pr-1 py-0 align-middle flex items-center shadow-md">
                   <div className="flex items-center justify-between mt-0 h-10">
 
-                      <AutoFitText className="font-semibold text-[#583312] text-sl text-shadow-md w-32" max={16} min={10}>
-                        {user.nickname}
-                      </AutoFitText>
+                      <div ref={editRef} className="flex items-center gap-2">
+                        {isEditingNickname ? (
+                          <input
+                            ref={inputRef}
+                            value={nicknameInput}
+                            onChange={(e) => setNicknameInput(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                const currentUser = useAuthStore.getState().user;
+                                if (currentUser) {
+                                  useAuthStore.setState({ user: { ...currentUser, nickname: nicknameInput } });
+                                }
+                                setIsEditingNickname(false);
+                              } else if (e.key === 'Escape') {
+                                setIsEditingNickname(false);
+                                setNicknameInput(user?.nickname ?? "");
+                              }
+                            }}
+                            autoFocus
+                            className="font-semibold text-[#583312] text-sl text-shadow-md w-32 bg-transparent outline-none"
+                          />
+                        ) : (
+                          <AutoFitText className="font-semibold text-[#583312] text-sl text-shadow-md w-32" max={16} min={10}>
+                            {user.nickname}
+                          </AutoFitText>
+                        )}
 
-                      <button
-                          className="w-23 h-8 text-white text-sm font-semibold text-shadow-md text-shadow-[#58534f] transition active:scale-95 "
-                          style={{ 
-                              backgroundImage: "url('/setting_button_green.png')", 
-                              backgroundSize: '100% 100%', 
-                              backgroundPosition: 'center', 
-                              backgroundRepeat: 'no-repeat'
-                          }}
+                        {
+                          !isEditingNickname && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setNicknameInput(user?.nickname ?? "");
+                              setIsEditingNickname(true);
+                            }}
+                            className="w-23 h-8 text-white text-sm font-semibold text-shadow-md text-shadow-[#58534f] transition active:scale-95 "
+                            style={{
+                              backgroundImage: "url('/setting_button_green.png')",
+                              backgroundSize: '100% 100%',
+                              backgroundPosition: 'center',
+                              backgroundRepeat: 'no-repeat',
+                            }}
                           >
-                          이름 변경
-                      </button>
+                            {isEditingNickname ? "변경 완료" : "이름 변경"}
+                          </button>
+                        )}
+
+                        {
+                          isEditingNickname && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setIsEditingNickname(false);
+                              setNicknameInput(user?.nickname ?? "");
+                            }}
+                            disabled={nicknameInput.trim().length <= 0}
+                            hidden={nicknameInput.trim().length <= 0}
+                            className="w-23 h-8 text-white text-sm font-semibold text-shadow-md text-shadow-[#58534f] transition active:scale-95 "
+                            style={{
+                              backgroundImage: (nicknameInput.length <= 0 ? "url('/setting_button_gray.png')" : "url('/setting_button_orange.png')"),
+                              backgroundSize: '100% 100%',
+                              backgroundPosition: 'center',
+                              backgroundRepeat: 'no-repeat',
+                            }}
+                          >
+                            변경 완료
+                          </button>
+                        )}
+
+                      </div>
                   </div>
                 </div>
               </div>

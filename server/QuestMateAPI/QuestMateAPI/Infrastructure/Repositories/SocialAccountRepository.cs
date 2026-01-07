@@ -120,5 +120,17 @@ namespace QuestMateAPI.Infrastructure.Repositories
 
             await conn.ExecuteAsync(sql, new { UserId = accountUserId, Nickname = nickname });
         }
+
+        public async Task UpdateAccountNicknameByUserIdAsync(long userId, string nickname)
+        {
+            using var conn = _context.CreateConnection();
+
+            var sql = @"
+                UPDATE user
+                SET nickname = @Nickname
+                WHERE id = @UserId";
+
+            await conn.ExecuteAsync(sql, new { UserId = userId, Nickname = nickname });
+        }
     }
 }
