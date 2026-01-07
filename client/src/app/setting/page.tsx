@@ -243,13 +243,13 @@ export default function SettingPage() {
                 {/* 프로필 아이콘 */}
                 <div className="relative" ref={avatarWrapperRef}>
                   <button onClick={() => setIsAvatarModalOpen(!isAvatarModalOpen)}>
-                    <UserAvatar avatarNumber={user.avatarNumber || 15} size={80} className="cursor-pointer hover:brightness-110" />
+                    <UserAvatar avatarNumber={user.avatarNumber} size={80} className="cursor-pointer hover:brightness-110" />
                   </button>
                   
                   <AvatarSelectModal 
                     isOpen={isAvatarModalOpen}
                     onClose={() => setIsAvatarModalOpen(false)}
-                    currentAvatarNumber={user.avatarNumber || 15}
+                    currentAvatarNumber={user.avatarNumber??0}
                     anchorRef={avatarWrapperRef}
                   />
                 </div>
