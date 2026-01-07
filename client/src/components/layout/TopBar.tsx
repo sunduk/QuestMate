@@ -25,9 +25,13 @@ export default function TopBar() {
   // 모달 바깥 클릭 감지
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (avatarWrapperRef.current && !avatarWrapperRef.current.contains(event.target as Node)) {
-        setIsAvatarModalOpen(false);
-      }
+      const target = event.target as Node;
+
+      // if click is inside avatar button or inside portal modal, do nothing
+      if (avatarWrapperRef.current?.contains(target)) return;
+      if (target instanceof Element && target.closest('.avatar-select-modal-portal')) return;
+
+      setIsAvatarModalOpen(false);
     };
 
     if (isAvatarModalOpen) {

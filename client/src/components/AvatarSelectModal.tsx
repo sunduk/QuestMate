@@ -79,7 +79,7 @@ export default function AvatarSelectModal({
 
   const modal = (
     <div
-      className={`bg-white border-2 border-[#e8ddc9] rounded-lg shadow-lg p-3 z-[9999] max-h-200 overflow-y-auto ${className}`}
+      className={`avatar-select-modal-portal bg-white border-2 border-[#e8ddc9] rounded-lg shadow-lg p-3 z-[9999] max-h-200 overflow-y-auto ${className}`}
       style={{ width: 250 }}
     >
       <h3 className="text-sm font-bold text-[#6e5238] mb-2">아바타 선택</h3>
@@ -112,7 +112,7 @@ export default function AvatarSelectModal({
   // fallback: render inline
   return (
     <div 
-      className={`absolute top-full right-0 mt-2 bg-white border-2 border-[#e8ddc9] rounded-lg shadow-lg p-3 z-[60] max-h-90 overflow-y-auto ${className}`}
+      className={`absolute top-full right-0 mt-2 bg-white border-2 border-[#e8ddc9] rounded-lg shadow-lg p-3 z-[9999] max-h-90 overflow-y-auto ${className}`}
       style={{ width: '200px' }}
     >
       {modal}

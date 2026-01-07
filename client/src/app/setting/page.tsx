@@ -118,9 +118,17 @@ export default function SettingPage() {
   // avatar modal outside click handler
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (avatarWrapperRef.current && !avatarWrapperRef.current.contains(event.target as Node)) {
-        setIsAvatarModalOpen(false);
+      const target = event.target as Node;
+
+      // If click is inside the avatar wrapper or inside the modal portal, do nothing.
+      if (
+        (avatarWrapperRef.current && avatarWrapperRef.current.contains(target)) ||
+        (target instanceof Element && target.closest('.avatar-select-modal-portal'))
+      ) {
+        return;
       }
+
+      setIsAvatarModalOpen(false);
     };
 
     if (isAvatarModalOpen) {
@@ -245,15 +253,16 @@ export default function SettingPage() {
                   <button onClick={() => setIsAvatarModalOpen(!isAvatarModalOpen)}>
                     <UserAvatar avatarNumber={user.avatarNumber} size={80} className="cursor-pointer hover:brightness-110" />
                   </button>
-                  
-                  <AvatarSelectModal 
-                    isOpen={isAvatarModalOpen}
-                    onClose={() => setIsAvatarModalOpen(false)}
-                    currentAvatarNumber={user.avatarNumber??0}
-                    anchorRef={avatarWrapperRef}
-                  />
                 </div>
               </div>
+              
+              {/* 아바타 선택 모달 - 부모 밖에서 렌더링 */}
+              <AvatarSelectModal 
+                isOpen={isAvatarModalOpen}
+                onClose={() => setIsAvatarModalOpen(false)}
+                currentAvatarNumber={user.avatarNumber??0}
+                anchorRef={avatarWrapperRef}
+              />
 
               {/* 닉네임 영역 */}
               <div className="mt-1 flex flex-col gap-2">
