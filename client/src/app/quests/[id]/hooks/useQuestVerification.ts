@@ -119,6 +119,7 @@ export const useQuestVerification = (
       );
 
       if (result.success) {
+        console.log("Verify Edit Success:", result);
         setQuest((prev) => {
           if (!prev) return null;
           return {

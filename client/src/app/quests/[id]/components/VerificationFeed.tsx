@@ -230,7 +230,7 @@ export const VerificationFeed = ({
     <div className="grid grid-cols-1 gap-6">
       {verifications.map((v) => (
         <VerificationItem
-          key={v.id}
+          key={`${v.id}-${v.imageUrl || 'no-image'}-${v.fileId || 'no-file'}`}
           v={v}
           editingVerifyId={editingVerifyId}
           editingPreviewUrl={editingPreviewUrl}
