@@ -233,28 +233,16 @@ namespace QuestMateAPI.Application.Services
                 // 1. 파일 업로드 처리 (선택적)
                 if (dto.Image != null && dto.Image.Length > 0)
                 {
-                    var ext = Path.GetExtension(dto.Image.FileName).ToLower();
-                    if (ext != ".jpg" && ext != ".png" && ext != ".jpeg")
+                    try
+                    {
+                        // delegate saving to file storage implementation
+                        var stored = await _fileStorage.SaveAsync(dto.Image, "verifications");
+                        imageUrl = stored; // internal stored relative path
+                    }
+                    catch (InvalidOperationException)
                     {
                         return new QuestVerifyUpdateResultDto { Success = false, Error = "INVALID_IMAGE_TYPE" };
                     }
-
-                    string webRootPath = _environment.WebRootPath ?? Path.Combine(_environment.ContentRootPath, "wwwroot");
-                    string datePath = DateTime.Now.ToString("yyyyMMdd");
-                    string uploadsFolder = Path.Combine(webRootPath, "uploads", datePath);
-
-                    if (!Directory.Exists(uploadsFolder))
-                        Directory.CreateDirectory(uploadsFolder);
-
-                    string uniqueFileName = $"{Guid.NewGuid()}{ext}";
-                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await dto.Image.CopyToAsync(fileStream);
-                    }
-
-                    imageUrl = $"/uploads/{datePath}/{uniqueFileName}";
                 }
                 else
                 {
@@ -262,11 +250,8 @@ namespace QuestMateAPI.Application.Services
                     var verification = await _repository.GetVerificationByIdAsync(dto.VerificationId);
                     if (verification is not null && !string.IsNullOrEmpty(verification.ImageUrl))
                     {
-                        string existingFilePath = Path.Combine(_environment.WebRootPath ?? Path.Combine(_environment.ContentRootPath, "wwwroot"), verification.ImageUrl.TrimStart('/'));
-                        if (File.Exists(existingFilePath))
-                        {
-                            File.Delete(existingFilePath);
-                        }
+                        // delete using storage service (verification.ImageUrl holds stored relative path)
+                        await _fileStorage.DeleteAsync(verification.ImageUrl);
 
                         // imageUrl을 null로 설정
                         imageUrl = null;
