@@ -28,6 +28,7 @@ export default function TopBar() {
   const avatarNumber = user?.avatarNumber ?? Number(localStorage.getItem("avatarNumber")) ?? 0;
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const avatarWrapperRef = useRef<HTMLDivElement>(null);
+  const [isExitModalOpen, setIsExitModalOpen] = useState(false);
 
   // 모달 바깥 클릭 감지
   useEffect(() => {
@@ -171,7 +172,7 @@ export default function TopBar() {
         )}
         
         <button 
-          onClick={handleAuthAction}
+          onClick={isGuestMode ? () => setIsExitModalOpen(true) : handleAuthAction}
           className="relative flex h-10 w-23 items-center justify-center transition active:scale-95 hover:brightness-110"
         >
           <div 
@@ -191,16 +192,37 @@ export default function TopBar() {
 
       {/* masking tape 이미지 영역 - 게스트 모드일 때만 배경 위에 겹쳐서 표시 (레이아웃 공간 차지 안함) */}
       {isGuestMode && (
-        <div className="fixed top-9 left-0 right-0 z-60 w-full h-16 flex justify-center pointer-events-none">
+        <div className="fixed top-10 left-0 right-0 z-60 w-full h-12 flex justify-center pointer-events-none">
           <div className="relative w-full max-w-screen-md flex justify-center" style={{ transform: "rotate(-5deg)" }}>
-            <img src="/masking_tape.png" alt="masking tape" className="w-full object-contain opacity-75" />
-            
-            <div className="absolute mb-5 inset-0 flex items-center justify-center pointer-events-none">
-              <span className="text-xl font-bold text-[#724b20] drop-shadow-[0_3px_3px_rgba(0,0,0,0.25)] select-none">지금은 체험 여행 중이에요</span>
+            <img src="/masking_tape.png" alt="masking tape" className="w-full object-contain" />
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <span className="text-base font-semibold text-[#724b20] drop-shadow-[0_2px_2px_rgba(0,0,0,0.35)] select-none">지금은 체험 여행 중이에요</span>
             </div>
+          </div>
+        </div>
+      )}
 
-            <div className="absolute mt-6 inset-0 flex items-center justify-center pointer-events-none">
-              <span className="text-sm text-[#6c3d11] select-none">(체험 종료시 노트가 사라집니다)</span>
+      {/* Exit confirmation modal (guest mode only) */}
+      {isExitModalOpen && (
+        <div className="fixed inset-0 z-70 flex items-center justify-center bg-black/50" onClick={() => setIsExitModalOpen(false)}>
+          <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-2xl" 
+            style={{ backgroundImage: "url('/popup_bg02.png')", backgroundSize: "cover" }}
+            onClick={(e) => e.stopPropagation()}>
+
+            <div className="flex flex-col items-center gap-4">
+              <img src="/exitdoor.png" alt="Exit" className="w-35 h-35 object-contain" />
+              <h3 className="text-lg font-bold text-gray-800">체험을 종료하시겠어요?</h3>
+              <p className="text-sm text-gray-600 text-center">작성하신 발자국 기록은 저장되지 않고 사라집니다.<br />다시 돌아올 수 없어요.</p>
+
+              <div className="mt-4 flex gap-3 w-full">
+                <button onClick={() => setIsExitModalOpen(false)} className="flex-1 h-10 rounded-xl border border-gray-300 bg-white text-sm font-medium"
+                  style={{ backgroundImage: "url('/form_button_noimage.png')" }}
+                >
+                  계속 체험할래요
+                </button>
+                
+                <button onClick={handleAuthAction} className="flex-1 h-10 rounded-xl bg-red-600 text-white text-sm font-bold">진짜 종료할래요</button>
+              </div>
             </div>
           </div>
         </div>
