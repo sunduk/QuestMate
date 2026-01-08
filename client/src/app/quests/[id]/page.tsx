@@ -62,6 +62,7 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
             isVerifying={verification.isVerifying}
             previewUrl={verification.previewUrl}
             comment={verification.comment}
+            commentInvalid={verification.commentInvalid}
             entryFee={quest.entryFee}
             onJoin={() =>
               handleJoin(() => {

@@ -7,6 +7,7 @@ interface VerificationFormProps {
   isVerifying: boolean;
   previewUrl: string | null;
   comment: string;
+  commentInvalid?: boolean;
   entryFee: number;
   onJoin: () => void;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -22,6 +23,7 @@ export const VerificationForm = ({
   isVerifying,
   previewUrl,
   comment,
+  commentInvalid,
   entryFee,
   onJoin,
   onFileChange,
@@ -129,7 +131,9 @@ export const VerificationForm = ({
             placeholder="한줄 메시지 남기기..."
             value={comment}
             onChange={(e) => onCommentChange(e.target.value)}
-            className="w-full rounded-lg text-[#553b24] border border-[#b29478] p-2 text-sm outline-none focus:border-[#553b24]"
+            className={`w-full rounded-lg text-[#553b24] p-2 text-sm outline-none border ${
+              commentInvalid ? "border-red-300 ring-1 ring-red-100 animate-blink-border" : "border-[#b29478] focus:border-[#553b24]"
+            }`}
           />
 
           <div className="mt-3 flex gap-2 items-center">

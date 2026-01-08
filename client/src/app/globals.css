@@ -33,3 +33,14 @@ body {
     -ms-overflow-style: none;
     scrollbar-width: none;
 }
+
+@keyframes blink-border {
+  0%, 100% { border-color: #885c34; }
+  50% { border-color: transparent; }
+}
+
+.animate-blink-border {
+  animation: blink-border 0.15s 2;
+  border-style: solid !important;
+  box-shadow: 0 0 0 5px rgba(14, 130, 238, 0.12);
+}

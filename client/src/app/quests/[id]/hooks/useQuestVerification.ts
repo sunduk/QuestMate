@@ -12,6 +12,7 @@ export const useQuestVerification = (
   const [verifyImage, setVerifyImage] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [comment, setComment] = useState("");
+  const [commentInvalid, setCommentInvalid] = useState<boolean>(false);
 
   // 수정
   const [editingVerifyId, setEditingVerifyId] = useState<number | null>(null);
@@ -42,6 +43,12 @@ export const useQuestVerification = (
 
   const handleSubmitVerify = async () => {
     if (!quest) return;
+    
+    if ((comment ?? "").trim() === "") {
+      setCommentInvalid(true);
+      return;
+    }
+    
     const confirmMsg = verifyImage ? "이 사진으로 인증하시겠습니까?" : "사진 없이 인증하시겠습니까?";
     if (!confirm(confirmMsg)) return;
 
@@ -158,10 +165,22 @@ export const useQuestVerification = (
   };
 
   useEffect(() => {
-    if (editingCommentInvalid && (editingComment ?? "").trim() !== "") {
-      setEditingCommentInvalid(false);
+    if (editingCommentInvalid) {
+      const timer = setTimeout(() => {
+        setEditingCommentInvalid(false);
+      }, 750); // 0.25s * 3 = 0.75s
+      return () => clearTimeout(timer);
     }
-  }, [editingComment, editingCommentInvalid]);
+  }, [editingCommentInvalid]);
+
+  useEffect(() => {
+    if (commentInvalid) {
+      const timer = setTimeout(() => {
+        setCommentInvalid(false);
+      }, 750); // 0.25s * 3 = 0.75s
+      return () => clearTimeout(timer);
+    }
+  }, [commentInvalid]);
 
   // ----------------------------------------------------------------------
   // [삭제]
@@ -206,6 +225,7 @@ export const useQuestVerification = (
     verifyImage,
     previewUrl,
     comment,
+    commentInvalid,
     setComment,
     setPreviewUrl,
     setVerifyImage,

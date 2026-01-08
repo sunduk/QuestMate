@@ -158,14 +158,13 @@ const VerificationItem = ({
       {/* 코멘트 및 버튼 영역 */}
       {editingVerifyId === v.id ? (
         <div className="relative w-full bg-[length:100%_100%] bg-no-repeat p-6 space-y-3" style={{ backgroundImage: "url('/feed_comment_bg.png')" }}>
-          <textarea
+          <input
             value={editingComment ?? ""}
             onChange={(e) => onEditCommentChange(e.target.value)}
-            placeholder="한줄 소감을 남겨주세요."
-            className={`w-full rounded-lg bg-white/50 p-2 text-sm outline-none text-[#482e17] ${
-              editingCommentInvalid ? "border-red-500 ring-2 ring-red-500" : "border-[#d6c6ac] focus:border-[#553b24]"
+            placeholder="한줄 메시지를 남겨주세요."
+            className={`w-full rounded-lg bg-white/50 p-2 text-sm outline-none text-[#482e17] border ${
+              editingCommentInvalid ? "border-red-500 ring-1 ring-red-200 animate-blink-border" : "border-[#d6c6ac] focus:border-[#553b24]"
             }`}
-            rows={2}
           />
           <div className="flex gap-2">
             <button
