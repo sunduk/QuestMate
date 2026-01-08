@@ -48,7 +48,7 @@ export default function LoginModal({ isOpen, onClose, state }: LoginModalProps) 
     setIsGuestLoading(true);
     try {
       const resp = await api.post("/auth/guest");
-      await handleLoginSuccess(resp.data, setAuth, router);
+      await handleLoginSuccess(resp.data, setAuth, router, state);
       onClose();
     } catch (err: unknown) {
       console.error("Guest login failed", err);
