@@ -46,7 +46,7 @@ export default function LoginModal({ isOpen, onClose, state }: LoginModalProps) 
       >
         <div className="mb-6 text-center">
           <div className="mb-4 text-5xl">
-            <img src="/login_logo.png" alt="Login Logo" className="mx-auto" />
+            <img src="/login_logo.png" alt="Login Logo" className="mx-auto w-50" />
           </div>
           <h3 className="mb-2 text-2xl font-bold text-gray-800">로그인이 필요해요</h3>
           <p className="text-sm text-gray-500">
@@ -87,12 +87,31 @@ export default function LoginModal({ isOpen, onClose, state }: LoginModalProps) 
           </button>
         </div>
 
-        <button
-          onClick={onClose}
-          className="mt-6 w-full rounded-xl bg-gray-300 py-3 text-gray-600 font-medium transition hover:bg-gray-400 active:scale-95"
-        >
-          닫기
-        </button>
+        {/* Divider + guest button */}
+        <div className="mt-6">
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-gray-200" />
+            <span className="text-xs text-gray-400">또는</span>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
+
+          <button
+            // UI-only: no click handler (no functionality)
+            className="mt-4 w-full flex items-center justify-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-100 py-3 px-4 text-gray-700 font-medium shadow-sm transition hover:bg-gray-50 active:scale-95"
+          >
+            <img src="/stamp.png" alt="Guest Icon" className="w-8 h-8" />
+            <span className="text-lg text-[#724b20] tracking-tight drop-shadow-sm mt-1">
+              로그인 없이 체험하기
+            </span>
+          </button>
+
+          <button
+            onClick={onClose}
+            className="mt-4 w-full rounded-xl bg-gray-300 py-3 text-gray-600 font-medium transition hover:bg-gray-400 active:scale-95"
+          >
+            닫기
+          </button>
+        </div>
       </div>
     </div>
   );
