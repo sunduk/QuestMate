@@ -9,5 +9,6 @@ namespace QuestMateAPI.Application.DTOs.Auth
         Task<SignUpResultDto> SignUpAsync(SignUpRequestDto request);
         Task<RefreshTokenResultDto> RefreshToken(RefreshTokenRequestDto request);
         Task<UserDto?> GetMyInfoAsync(long userId);
+        Task<LoginResultDto> CreateGuestAsync();
     }
 }

@@ -81,6 +81,18 @@ namespace QuestMateAPI.Controllers
             return Ok(result);
         }
 
+        [HttpPost("guest")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Guest()
+        {
+            var result = await _authService.CreateGuestAsync();
+
+            if (!result.Success)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
         [HttpGet("me")]
         [Authorize]
         public async Task<IActionResult> Me()

@@ -15,6 +15,7 @@ namespace QuestMateAPI.Application.Services
     {
         private readonly ILocalAccountRepository _localAccountRepo;
         private readonly IUserRepository _userRepo;
+        private readonly ISocialAccountRepository _socialAccountRepo;
         private readonly IRefreshTokenRepository _refreshTokenRepo;
 
         private readonly JwtTokenGenerator _jwt;
@@ -22,11 +23,13 @@ namespace QuestMateAPI.Application.Services
         public AuthService(
             ILocalAccountRepository localAccountRepo,
             IUserRepository userRepo,
+            ISocialAccountRepository socialAccountRepo,
             IRefreshTokenRepository refreshTokenRepo,
             JwtTokenGenerator jwt)
         {
             _localAccountRepo = localAccountRepo;
             _userRepo = userRepo;
+            _socialAccountRepo = socialAccountRepo;
             _refreshTokenRepo = refreshTokenRepo;
             _jwt = jwt;
         }
@@ -179,6 +182,49 @@ namespace QuestMateAPI.Application.Services
                 Id = user.Id,
                 AvatarNumber = user.AvatarNumber,
                 Nickname = user.Nickname
+            };
+        }
+
+        public async Task<LoginResultDto> CreateGuestAsync()
+        {
+            // 1. create user with random avatar and reserved nickname
+            int avatarNumber = Random.Shared.Next(0, 40 + 1);
+
+            var (userId, nickname) = await _socialAccountRepo.CreateAccountUserAsync(avatarNumber);
+
+            // 2. create social account entry for guest
+            var platformUserId = Guid.NewGuid().ToString();
+            var socialAccountId = await _socialAccountRepo.CreateSocialAccountAsync(
+                userId,
+                (int)PlatformDefine.Guest,
+                platformUserId,
+                string.Empty,
+                string.Empty
+            );
+
+            // 3. create refresh token
+            string refreshTokenStr = RefreshTokenGenerator.GenerateRefreshToken();
+            RefreshToken refreshToken = new RefreshToken
+            {
+                UserId = userId,
+                Token = refreshTokenStr,
+                ExpiresAt = DateTime.UtcNow.AddDays(30),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _refreshTokenRepo.CreateAsync(refreshToken);
+
+            // 4. generate access token
+            var accessToken = _jwt.GenerateAccessToken(userId);
+
+            return new LoginResultDto
+            {
+                Success = true,
+                UserId = userId,
+                AccessToken = accessToken,
+                RefreshToken = refreshTokenStr,
+                AvatarNumber = avatarNumber,
+                Nickname = nickname
             };
         }
     }
