@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import api from "../../../../lib/axios";
 import { useAuthStore } from "../../../../store/useAuthStore";
+import { handleLoginSuccess } from "../../../../lib/authHelpers";
 
 export default function GoogleCallbackPage() {
   const router = useRouter();
@@ -34,28 +35,9 @@ export default function GoogleCallbackPage() {
         // 2. 인가코드를 서버로 전송
         const response = await api.get(`/GoogleCallback?code=${code}`);
 
-        // 3. 서버에서 받은 토큰과 사용자 정보 저장
-        const { accessToken, userId, avatarNumber, nickname } = response.data; 
-
+        // 3. 서버에서 받은 토큰과 사용자 정보 저장 (재사용 가능한 헬퍼로 처리)
         console.log("응답 데이터:", response.data);
-
-        if (accessToken && userId) {
-          // ★ 여기서 스토어에 저장 (싱글톤 업데이트)
-          setAuth({ id: userId, email: "", nickname: nickname, avatarNumber: avatarNumber }, accessToken);
-
-          // 로컬 스토리지에도 저장 (하위 호환성)
-          localStorage.setItem("accessToken", accessToken);
-          localStorage.setItem("userId", userId.toString());
-          localStorage.setItem("isLoggedIn", "true");
-          
-          localStorage.setItem("avatarNumber", avatarNumber);
-          localStorage.setItem("nickname", nickname);
-
-          // 홈으로 리다이렉트
-          router.push(state);
-        } else {
-          setError("로그인 정보를 받지 못했습니다.");
-        }
+        await handleLoginSuccess(response.data, setAuth, router, state || undefined);
       } catch (err: unknown) {
         console.error("구글 로그인 처리 실패:", err);
         const errorMessage = err && typeof err === 'object' && 'response' in err

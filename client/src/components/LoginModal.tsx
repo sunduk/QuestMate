@@ -1,6 +1,11 @@
 "use client";
 
 import { baseURL } from "../lib/axios";
+import api from "../lib/axios";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "../store/useAuthStore";
+import { handleLoginSuccess } from "../lib/authHelpers";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -9,6 +14,10 @@ interface LoginModalProps {
 }
 
 export default function LoginModal({ isOpen, onClose, state }: LoginModalProps) {
+  const router = useRouter();
+  const setAuth = useAuthStore((s) => s.setAuth);
+  const [isGuestLoading, setIsGuestLoading] = useState(false);
+
   if (!isOpen) return null;
 
   const handleNaverLogin = () => {
@@ -23,7 +32,7 @@ export default function LoginModal({ isOpen, onClose, state }: LoginModalProps) 
     const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
     const redirectUri = `${window.location.origin}/auth/google/callback`;
     const scope = "openid email profile";
-    
+
     const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?` +
       `response_type=code&` +
       `client_id=${encodeURIComponent(googleClientId)}&` +
@@ -31,8 +40,22 @@ export default function LoginModal({ isOpen, onClose, state }: LoginModalProps) 
       `scope=${encodeURIComponent(scope)}&` +
       `access_type=offline&` +
       `state=${encodeURIComponent(state)}`;
-    
+
     window.location.href = googleAuthUrl;
+  };
+
+  const handleGuestLogin = async () => {
+    setIsGuestLoading(true);
+    try {
+      const resp = await api.post("/auth/guest");
+      await handleLoginSuccess(resp.data, setAuth, router);
+      onClose();
+    } catch (err: unknown) {
+      console.error("Guest login failed", err);
+      alert("게스트 로그인에 실패했습니다.");
+    } finally {
+      setIsGuestLoading(false);
+    }
   };
 
   return (
@@ -70,10 +93,10 @@ export default function LoginModal({ isOpen, onClose, state }: LoginModalProps) 
             <span>구글로 시작하기</span>
           </button>
 
-          {/* 카카오 로그인 */}
           <button
-            className="w-full flex items-center justify-center gap-3 rounded-xl bg-[#FEE500] py-3 px-4 text-[#000000] font-medium shadow-sm transition hover:bg-[#FDD835] active:scale-95"
             onClick={handleKakaoLogin}
+            disabled={isGuestLoading}
+            className="w-full flex items-center justify-center gap-3 rounded-xl bg-[#FEE500] py-3 px-4 text-[#000000] font-medium shadow-sm transition hover:bg-[#FDD835] active:scale-95"
           >
             <span>카카오로 시작하기</span>
           </button>
@@ -98,6 +121,8 @@ export default function LoginModal({ isOpen, onClose, state }: LoginModalProps) 
           <button
             // UI-only: no click handler (no functionality)
             className="mt-4 w-full flex items-center justify-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-100 py-3 px-4 text-gray-700 font-medium shadow-sm transition hover:bg-gray-50 active:scale-95"
+            onClick={handleGuestLogin}
+            disabled={isGuestLoading}
           >
             <img src="/stamp.png" alt="Guest Icon" className="w-8 h-8" />
             <span className="text-lg text-[#724b20] tracking-tight drop-shadow-sm mt-1">
