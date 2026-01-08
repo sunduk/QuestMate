@@ -30,7 +30,36 @@ export const useProtectedImage = (fileId?: number | null) => {
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}`);
         }
+
+        // 서버가 이미지가 없는 게시물에 대해 Ok()만 반환할 수 있음
+        // (예: 204 No Content 또는 Content-Length: 0). 이 경우는 에러가 아니므로
+        // 이미지가 없음을 표시하도록 처리합니다.
+        if (res.status === 204) {
+          if (!canceled) {
+            setSrc(null);
+            setError(null);
+          }
+          return;
+        }
+
+        const contentLength = res.headers.get("content-length");
+        if (contentLength === "0") {
+          if (!canceled) {
+            setSrc(null);
+            setError(null);
+          }
+          return;
+        }
+
         const blob = await res.blob();
+        if (!blob || blob.size === 0) {
+          if (!canceled) {
+            setSrc(null);
+            setError(null);
+          }
+          return;
+        }
+
         objectUrl = URL.createObjectURL(blob);
         if (!canceled) setSrc(objectUrl);
       } catch (err) {

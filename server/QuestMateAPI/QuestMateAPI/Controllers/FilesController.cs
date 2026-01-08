@@ -40,7 +40,7 @@ namespace QuestMateAPI.Controllers
             }
 
             var storedPath = verification.ImageUrl;
-            if (string.IsNullOrEmpty(storedPath)) return NotFound();
+            if (string.IsNullOrEmpty(storedPath)) return Ok();
 
             // 4. check existence
             var exists = await _fileStorage.ExistsAsync(storedPath);
