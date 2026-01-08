@@ -74,7 +74,7 @@ export const useQuestVerification = (
   const startEdit = (verification: VerificationViewModel) => {
     setEditingVerifyId(verification.id);
     setEditingComment(verification.comment);
-    setEditingPreviewUrl(verification.imageUrl);
+    setEditingPreviewUrl(verification.imageUrl ?? null);
     setEditingImage(null);
     setEditingRemovedImage(false);
   };

@@ -70,6 +70,9 @@ builder.Services.AddHttpClient<IGoogleAuthService, GoogleAuthService>();
 // Remove old IJwtService registration.
 builder.Services.AddScoped<IUserInfoService, UserInfoService>();
 
+// File storage service for private files
+builder.Services.AddScoped<QuestMateAPI.Application.Interfaces.Services.IFileStorageService, QuestMateAPI.Infrastructure.Services.LocalPrivateFileStorageService>();
+
 Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
 
 // JWT 설정 및 서비스 등록

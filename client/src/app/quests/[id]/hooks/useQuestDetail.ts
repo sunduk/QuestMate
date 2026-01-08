@@ -83,11 +83,11 @@ const mapDataToViewModel = (data: QuestDetailDto, myId?: number): QuestViewModel
 
     verifications: (data.verifications || []).map((v) => {
       // 이미지 경로 처리
-      let fullImageUrl = v.imageUrl;
-      if (v.imageUrl && !v.imageUrl.startsWith("http")) {
-        const baseUrl = IMAGE_BASE_URL.replace(/\/$/, "");
-        const path = v.imageUrl.startsWith("/") ? v.imageUrl : `/${v.imageUrl}`;
-        fullImageUrl = `${baseUrl}${path}`;
+      // If server returned an absolute public URL, keep it. Otherwise treat image as protected
+      // and fetch via protected endpoint using the verification id.
+      let fullImageUrl: string | undefined = undefined;
+      if (v.imageUrl && v.imageUrl.startsWith("http")) {
+        fullImageUrl = v.imageUrl;
       }
 
       // UTC 시간을 로컬 시간으로 변환
@@ -104,6 +104,8 @@ const mapDataToViewModel = (data: QuestDetailDto, myId?: number): QuestViewModel
         isMine: myId ? myId === v.userId : false,
         userName: v.nickname || "이름 없음",
         imageUrl: fullImageUrl,
+        // when image is protected, client should call /files/verification/{id}
+        fileId: v.id,
         comment: v.comment,
         createdAt: new Date(dateStr).toLocaleString("ko-KR", {
           year: "numeric",

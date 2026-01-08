@@ -11,11 +11,13 @@ namespace QuestMateAPI.Application.Services
     {
         private readonly IQuestRepository _repository;
         private readonly IWebHostEnvironment _environment; // 웹 서버 환경 정보 (경로 찾기용)
+        private readonly QuestMateAPI.Application.Interfaces.Services.IFileStorageService _fileStorage;
 
-        public QuestService(IQuestRepository repository, IWebHostEnvironment environment)
+        public QuestService(IQuestRepository repository, IWebHostEnvironment environment, QuestMateAPI.Application.Interfaces.Services.IFileStorageService fileStorage)
         {
             _repository = repository;
             _environment = environment;
+            _fileStorage = fileStorage;
         }
 
         public async Task<CreateQuestResultDto> CreateQuestAsync(long userId, CreateQuestRequestDto dto)
@@ -172,34 +174,17 @@ namespace QuestMateAPI.Application.Services
                 // 1. 파일 업로드 처리 (선택적)
                 if (dto.Image != null && dto.Image.Length > 0)
                 {
-                    // 확장자 체크 (이미지만 허용)
-                    var ext = Path.GetExtension(dto.Image.FileName).ToLower();
-                    if (ext != ".jpg" && ext != ".png" && ext != ".jpeg")
+                    try
+                    {
+                        // let fileStorage validate extension and save
+                        var stored = await _fileStorage.SaveAsync(dto.Image, "verifications");
+                        // store the relative stored path in DB (not a public URL)
+                        imageUrl = stored; // now this is internal path like "verifications/20260101/guid.jpg"
+                    }
+                    catch (InvalidOperationException)
                     {
                         return new QuestVerifyResultDto { Success = false, Error = "INVALID_IMAGE_TYPE" };
                     }
-
-                    // 2. 저장 경로 설정
-                    string webRootPath = _environment.WebRootPath ?? Path.Combine(_environment.ContentRootPath, "wwwroot");
-                    string datePath = DateTime.Now.ToString("yyyyMMdd");
-                    string uploadsFolder = Path.Combine(webRootPath, "uploads", datePath);
-
-                    // 폴더 없으면 생성
-                    if (!Directory.Exists(uploadsFolder))
-                        Directory.CreateDirectory(uploadsFolder);
-
-                    // 3. 유니크 파일명 생성 (Guid + 확장자)
-                    string uniqueFileName = $"{Guid.NewGuid()}{ext}";
-                    string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                    // 4. 디스크에 파일 쓰기 (Stream Copy)
-                    using (var fileStream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await dto.Image.CopyToAsync(fileStream);
-                    }
-
-                    // 웹에서 접근 가능한 URL 만들기
-                    imageUrl = $"/uploads/{datePath}/{uniqueFileName}";
                 }
 
                 // 5. DB 업데이트 (Repository 호출)

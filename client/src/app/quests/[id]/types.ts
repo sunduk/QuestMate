@@ -55,7 +55,9 @@ export interface VerificationViewModel {
   userId: number;
   isMine: boolean;
   userName: string;
-  imageUrl: string;
+  imageUrl?: string;
+  // when image is protected on server, fetch via /files/verification/{id}
+  fileId?: number;
   comment: string;
   createdAt: string;
   avatarNumber: number;

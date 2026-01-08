@@ -416,7 +416,8 @@ namespace QuestMateAPI.Infrastructure.Repositories
             using var conn = _context.CreateConnection();
 
             var sql = @"
-                SELECT *
+                SELECT 
+                    *
                 FROM quest_verification
                 WHERE id = @Id";
 
