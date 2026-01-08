@@ -87,10 +87,11 @@ export default function TopBar() {
   }
 
   return (
-    // sticky top-0: 스크롤해도 상단에 고정
-    // z-50: 다른 요소보다 위에 표시 (레이어 순서)
-    <header className="sticky top-0 z-50 flex h-14 items-center justify-center bg-[#fbf4e2] px-4 text-white shadow-md bg-cover bg-center bg-no-repeat"
-      style={{  backgroundImage: "url('/title_bg.png')", backgroundSize: '100% 100%', borderBottom: "1px solid #e8ddc9" }}>
+    <>
+      {/* sticky top-0: 스크롤해도 상단에 고정 */}
+      {/* z-50: 다른 요소보다 위에 표시 (레이어 순서) */}
+      <header className="sticky top-0 z-50 flex h-14 items-center justify-center bg-[#fbf4e2] px-4 text-white shadow-md bg-cover bg-center bg-no-repeat"
+        style={{  backgroundImage: "url('/title_bg.png')", backgroundSize: '100% 100%', borderBottom: "1px solid #e8ddc9" }}>
       {/* 왼쪽: 골드 현황 */}
       {/* <div className="flex items-center gap-2 rounded-full bg-slate-700 px-3 py-1">
         <span className="text-xl">💰</span>
@@ -144,6 +145,13 @@ export default function TopBar() {
 
       {/* 로그인 모달 */}
       <LoginModal isOpen={isLoginModalOpen} onClose={closeLoginModal} state={"/quests"} />
-    </header>
-  );
+      </header>
+
+      {/* masking tape 이미지 영역 - 배경 위에 겹쳐서 표시 (레이아웃 공간 차지 안함) */}
+      <div className="fixed top-10 left-0 right-0 z-60 w-full h-12 flex justify-center pointer-events-none">
+        게스트 모드
+        <img src="/masking_tape.png" alt="masking tape" className="w-full max-w-screen-md object-contain" />
+      </div>
+    </>
+    );
 }
