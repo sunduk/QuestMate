@@ -149,8 +149,12 @@ export default function TopBar() {
 
       {/* masking tape 이미지 영역 - 배경 위에 겹쳐서 표시 (레이아웃 공간 차지 안함) */}
       <div className="fixed top-10 left-0 right-0 z-60 w-full h-12 flex justify-center pointer-events-none">
-        게스트 모드
-        <img src="/masking_tape.png" alt="masking tape" className="w-full max-w-screen-md object-contain" />
+        <div className="relative w-full max-w-screen-md flex justify-center" style={{ transform: "rotate(-5deg)" }}>
+          <img src="/masking_tape.png" alt="masking tape" className="w-full object-contain" />
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span className="text-base font-semibold text-[#724b20] drop-shadow-[0_2px_2px_rgba(0,0,0,0.35)] select-none">지금은 체험 여행 중이에요</span>
+          </div>
+        </div>
       </div>
     </>
     );

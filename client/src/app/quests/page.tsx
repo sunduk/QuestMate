@@ -139,7 +139,7 @@ export default function QuestListPage() {
       <div className="absolute inset-0 overflow-y-auto px-6 py-8 pb-24">
 
           {/* 1. 페이지 타이틀 */}
-          <h1 className="mb-6 text-2xl font-bold text-[#5b3a1b] text-center">
+          <h1 className="mt-3 mb-6 text-2xl font-bold text-[#5b3a1b] text-center">
             하루가 쌓여 나를 만듭니다
           </h1>
 
