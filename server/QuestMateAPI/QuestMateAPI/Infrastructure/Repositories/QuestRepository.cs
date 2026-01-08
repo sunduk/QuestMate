@@ -81,7 +81,7 @@ namespace QuestMateAPI.Infrastructure.Repositories
         }
 
         // 2. 목록 조회 (모집중인 것만)
-        public async Task<IEnumerable<QuestItemDto>> GetActiveQuestsAsync()
+        public async Task<IEnumerable<QuestItemDto>> GetActiveQuestsAsync(long userId)
         {
             using var conn = _context.CreateConnection();
 
@@ -101,10 +101,10 @@ namespace QuestMateAPI.Infrastructure.Repositories
             FROM Quest q
             LEFT JOIN QuestMember qm ON q.id = qm.quest_id AND q.host_user_id = qm.user_id
             LEFT JOIN User u ON q.host_user_id = u.id
-            WHERE q.status = 0
+            WHERE q.status = 0 AND q.host_user_id = @UserId
             ORDER BY q.created_at DESC";
 
-            return await conn.QueryAsync<QuestItemDto>(sql);
+            return await conn.QueryAsync<QuestItemDto>(sql, new { UserId = userId });
         }
 
         // 상세정보

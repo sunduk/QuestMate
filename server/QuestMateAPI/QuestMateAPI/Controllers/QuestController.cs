@@ -44,7 +44,13 @@ namespace QuestMateAPI.Controllers
         [Authorize]
         public async Task<IActionResult> GetList()
         {
-            var result = await _questService.GetQuestListAsync();
+            var userIdStr = User.FindFirst("uid")?.Value;
+            if (string.IsNullOrEmpty(userIdStr) || !long.TryParse(userIdStr, out long userId))
+            {
+                return Unauthorized();
+            }
+
+            var result = await _questService.GetQuestListAsync(userId);
 
             if (!result.Success)
             {

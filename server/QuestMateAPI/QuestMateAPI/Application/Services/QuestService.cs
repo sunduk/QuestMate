@@ -60,12 +60,12 @@ namespace QuestMateAPI.Application.Services
             }
         }
 
-        public async Task<QuestListResultDto> GetQuestListAsync()
+        public async Task<QuestListResultDto> GetQuestListAsync(long userId)
         {
             try
             {
                 // 리포지토리에서 데이터 가져오기
-                var quests = await _repository.GetActiveQuestsAsync();
+                var quests = await _repository.GetActiveQuestsAsync(userId);
 
                 return new QuestListResultDto
                 {
