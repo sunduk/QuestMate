@@ -230,21 +230,7 @@ namespace QuestMateAPI.Application.Services
             {
                 string? imageUrl = null;
 
-                // 1. 파일 업로드 처리 (선택적)
-                if (dto.Image != null && dto.Image.Length > 0)
-                {
-                    try
-                    {
-                        // delegate saving to file storage implementation
-                        var stored = await _fileStorage.SaveAsync(dto.Image, "verifications");
-                        imageUrl = stored; // internal stored relative path
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        return new QuestVerifyUpdateResultDto { Success = false, Error = "INVALID_IMAGE_TYPE" };
-                    }
-                }
-                else
+                if (dto.RemoveImage)
                 {
                     // 이미지가 선택되지 않은 경우 기존 이미지 삭제
                     var verification = await _repository.GetVerificationByIdAsync(dto.VerificationId);
@@ -257,9 +243,27 @@ namespace QuestMateAPI.Application.Services
                         imageUrl = null;
                     }
                 }
+                else
+                {
+                    // 1. 파일 업로드 처리 (선택적)
+                    if (dto.Image != null && dto.Image.Length > 0)
+                    {
+                        try
+                        {
+                            // delegate saving to file storage implementation
+                            var stored = await _fileStorage.SaveAsync(dto.Image, "verifications");
+                            imageUrl = stored; // internal stored relative path
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            return new QuestVerifyUpdateResultDto { Success = false, Error = "INVALID_IMAGE_TYPE" };
+                        }
+                    }
+
+                }
 
                 // 2. Repository 호출 (한 번만 호출)
-                string error = await _repository.UpdateVerificationAsync(dto.QuestId, dto.VerificationId, userId, dto.Comment, imageUrl);
+                string error = await _repository.UpdateVerificationAsync(dto.QuestId, dto.VerificationId, userId, dto.Comment, dto.RemoveImage, imageUrl);
 
                 if (error != null)
                 {

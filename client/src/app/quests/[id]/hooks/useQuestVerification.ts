@@ -115,7 +115,10 @@ export const useQuestVerification = (
         quest.id,
         editingVerifyId,
         editingComment,
-        editingImage || undefined
+        // send File when a new file was selected, undefined when no change,
+        // null is not used here — use removeImage flag to request deletion
+        editingImage ?? undefined,
+        editingRemovedImage
       );
 
       if (result.success) {

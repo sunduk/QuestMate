@@ -424,7 +424,7 @@ namespace QuestMateAPI.Infrastructure.Repositories
             return await conn.QuerySingleOrDefaultAsync<QuestVerification>(sql, new { Id = verificationId });
         }
 
-        public async Task<string> UpdateVerificationAsync(long questId, long verificationId, long userId, string? comment, string? imageUrl)
+        public async Task<string> UpdateVerificationAsync(long questId, long verificationId, long userId, string? comment, bool isImageDeleted, string? updatedImageUrl)
         {
             using var conn = _context.CreateConnection();
             if (conn.State != System.Data.ConnectionState.Open) await conn.OpenAsync();
@@ -439,6 +439,17 @@ namespace QuestMateAPI.Infrastructure.Repositories
                     new { Id = verificationId, QId = questId, UId = userId }, transaction: trans);
 
                 if (verification == null) return "VERIFICATION_NOT_FOUND";
+
+                // 이미지 삭제 플래그에 따라 처리
+                string? imageUrl = verification.ImageUrl;
+                if (isImageDeleted)
+                {
+                    imageUrl = null; // 이미지 삭제
+                }
+                else if (updatedImageUrl != null)
+                {
+                    imageUrl = updatedImageUrl; // 새 이미지로 교체
+                }
 
                 // 2. 인증샷 수정
                 await conn.ExecuteAsync(@"

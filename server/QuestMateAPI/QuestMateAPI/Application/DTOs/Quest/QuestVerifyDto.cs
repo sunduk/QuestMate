@@ -55,6 +55,7 @@ namespace QuestMateAPI.Application.DTOs.Quest
         public string? Comment { get; set; } // 수정할 코멘트 (선택)
 
         public IFormFile? Image { get; set; } // 수정할 이미지 파일 (선택)
+        public bool RemoveImage { get; set; } // 이미지를 제거할지 여부
     }
 
     // [응답] 인증샷 수정 결과

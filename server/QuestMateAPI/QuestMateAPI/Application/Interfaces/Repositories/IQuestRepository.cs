@@ -12,7 +12,7 @@ namespace QuestMateAPI.Application.Interfaces.Repositories
         Task<string> LeaveQuestAsync(long questId, long userId);
         Task<(int currentCount, bool isSuccess)> VerifyQuestAsync(long questId, long userId, string? imageUrl, string? comment);
         Task<string> DeleteVerificationAsync(long questId, long verificationId, long userId);
-        Task<string> UpdateVerificationAsync(long questId, long verificationId, long userId, string? comment, string? imageUrl);
+        Task<string> UpdateVerificationAsync(long questId, long verificationId, long userId, string? comment, bool isImageDeleted, string? imageUrl);
         Task<QuestVerification?> GetVerificationByIdAsync(long verificationId);
         Task<IEnumerable<QuestVerificationDto>> GetQuestVerificationsAsync(long questId);
     }

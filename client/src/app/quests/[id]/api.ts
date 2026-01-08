@@ -47,14 +47,21 @@ export const updateVerification = async (
   questId: number,
   verificationId: number,
   comment: string,
-  image?: File
+  image?: File | null,
+  removeImage?: boolean
 ) => {
   const formData = new FormData();
   formData.append("QuestId", questId.toString());
   formData.append("VerificationId", verificationId.toString());
   formData.append("Comment", comment);
-  if (image) {
+  // Append image only when an actual File is provided (user selected new file)
+  if (image instanceof File) {
     formData.append("Image", image);
+  }
+
+  // If caller explicitly requests image removal, include a flag so server can delete it.
+  if (removeImage) {
+    formData.append("RemoveImage", "true");
   }
 
   const response = await api.post("/quest/verify/update", formData, {
