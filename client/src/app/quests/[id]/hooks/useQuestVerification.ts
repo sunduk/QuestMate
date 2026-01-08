@@ -139,6 +139,7 @@ export const useQuestVerification = (
                     ...v,
                     comment: editingComment,
                     imageUrl: editingRemovedImage ? "" : editingPreviewUrl || v.imageUrl,
+                    fileId: editingRemovedImage ? undefined : v.fileId,
                   }
                 : v
             ),
