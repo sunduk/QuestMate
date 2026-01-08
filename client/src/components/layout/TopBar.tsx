@@ -128,6 +128,11 @@ export default function TopBar() {
     }
   }
 
+  const handleExitGuestMode = () => {
+    setIsExitModalOpen(false);
+    handleAuthAction();
+  }
+
   return (
     <>
       {/* sticky top-0: 스크롤해도 상단에 고정 */}
@@ -211,17 +216,22 @@ export default function TopBar() {
 
             <div className="flex flex-col items-center gap-4">
               <img src="/exitdoor.png" alt="Exit" className="w-35 h-35 object-contain" />
-              <h3 className="text-lg font-bold text-gray-800">체험을 종료하시겠어요?</h3>
-              <p className="text-sm text-gray-600 text-center">작성하신 발자국 기록은 저장되지 않고 사라집니다.<br />다시 돌아올 수 없어요.</p>
+              <h3 className="text-2xl font-bold text-[#4d2e14]">체험을 종료하시겠어요?</h3>
+              <p className="text-sm text-[#5b432c] text-center">작성하신 노트는 저장되지 않고 사라집니다.<br />다시 돌아올 수 없어요.</p>
 
               <div className="mt-4 flex gap-3 w-full">
-                <button onClick={() => setIsExitModalOpen(false)} className="flex-1 h-10 rounded-xl border border-gray-300 bg-white text-sm font-medium"
-                  style={{ backgroundImage: "url('/form_button_noimage.png')" }}
+                <button onClick={() => setIsExitModalOpen(false)} 
+                className="flex-1 h-10 rounded-full border border-gray-300 bg-[#d07e46] text-base text-[#ffffff] font-medium overflow-hidden bg-cover bg-center bg-no-repeat bg-clip-padding transition active:scale-95"
+                  // style={{ backgroundImage: "url('/form_button_noimage.png')", backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat' }}
                 >
-                  계속 체험할래요
+                  <img src="/icon_check.png" alt="Close" className="inline-block mr-1 mb-1 w-5 object-contain" />계속 체험할래요
                 </button>
                 
-                <button onClick={handleAuthAction} className="flex-1 h-10 rounded-xl bg-red-600 text-white text-sm font-bold">진짜 종료할래요</button>
+                <button onClick={handleExitGuestMode} 
+                  className="flex-1 h-10 rounded-full border border-gray-300 bg-[#f7f4eb] text-base text-[#47301f] font-medium overflow-hidden bg-cover bg-center bg-no-repeat bg-clip-padding transition active:scale-95"
+                >
+                  <img src="/icon_x.png" alt="Close" className="inline-block mr-2 w-5 object-contain" />진짜 종료할래요
+                </button>
               </div>
             </div>
           </div>
