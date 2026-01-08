@@ -172,15 +172,16 @@ export default function TopBar() {
         
         <button 
           onClick={handleAuthAction}
-          className="relative flex h-10 w-20 items-center justify-center transition active:scale-95 hover:brightness-110"
+          className="relative flex h-10 w-23 items-center justify-center transition active:scale-95 hover:brightness-110"
         >
           <div 
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{ backgroundImage: isLoggedIn ? "url('/button_logout.png')" : "url('/button_login.png')", backgroundSize: '100% 100%' }}
           />
-          <span className="relative z-10 text-[11px] font-bold text-[#fffdf2] drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">
-            {isLoggedIn ? "로그아웃" : "로그인"}
+          <span className="relative z-10 text-[13px] font-bold text-[#fffdf2] drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">
+            {isLoggedIn ? (isGuestMode ? "체험 종료" : "로그아웃") : "로그인"}
           </span>
+          {/* <img src="/exit.png" alt="화살표" className="absolute right-2 w-8 h-8 object-contain" /> */}
         </button>
       </div>
 
@@ -190,11 +191,16 @@ export default function TopBar() {
 
       {/* masking tape 이미지 영역 - 게스트 모드일 때만 배경 위에 겹쳐서 표시 (레이아웃 공간 차지 안함) */}
       {isGuestMode && (
-        <div className="fixed top-10 left-0 right-0 z-60 w-full h-12 flex justify-center pointer-events-none">
+        <div className="fixed top-9 left-0 right-0 z-60 w-full h-16 flex justify-center pointer-events-none">
           <div className="relative w-full max-w-screen-md flex justify-center" style={{ transform: "rotate(-5deg)" }}>
-            <img src="/masking_tape.png" alt="masking tape" className="w-full object-contain" />
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <span className="text-base font-semibold text-[#724b20] drop-shadow-[0_2px_2px_rgba(0,0,0,0.35)] select-none">지금은 체험 여행 중이에요</span>
+            <img src="/masking_tape.png" alt="masking tape" className="w-full object-contain opacity-75" />
+            
+            <div className="absolute mb-5 inset-0 flex items-center justify-center pointer-events-none">
+              <span className="text-xl font-bold text-[#724b20] drop-shadow-[0_3px_3px_rgba(0,0,0,0.25)] select-none">지금은 체험 여행 중이에요</span>
+            </div>
+
+            <div className="absolute mt-6 inset-0 flex items-center justify-center pointer-events-none">
+              <span className="text-sm text-[#6c3d11] select-none">(체험 종료시 노트가 사라집니다)</span>
             </div>
           </div>
         </div>
