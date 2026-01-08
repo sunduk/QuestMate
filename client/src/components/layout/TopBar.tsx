@@ -13,6 +13,13 @@ export default function TopBar() {
   const router = useRouter();
   const { token: storeToken, logout: storeLogout, user } = useAuthStore();
   const { isLoginModalOpen, openLoginModal, closeLoginModal } = useModalStore();
+  const [isGuestMode, setIsGuestMode] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("isGuest") === "true";
+    } catch {
+      return false;
+    }
+  });
   
   // 스토어의 토큰 존재 여부로 로그인 상태 판단
   const isLoggedIn = !!storeToken;
@@ -42,6 +49,39 @@ export default function TopBar() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isAvatarModalOpen]);
+
+  // Keep guest mode state in sync with localStorage and auth changes
+  useEffect(() => {
+    try {
+      setIsGuestMode(localStorage.getItem("isGuest") === "true");
+    } catch {}
+  }, [storeToken, user]);
+
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === "isGuest") {
+        setIsGuestMode(e.newValue === "true");
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
+  // Listen for same-tab guest mode changes via CustomEvent
+  useEffect(() => {
+    const onGuestEvent = (e: Event) => {
+      try {
+        const detail = (e as CustomEvent).detail;
+        setIsGuestMode(!!detail);
+      } catch {
+        try {
+          setIsGuestMode(localStorage.getItem("isGuest") === "true");
+        } catch {}
+      }
+    };
+    window.addEventListener('guest-mode-changed', onGuestEvent as EventListener);
+    return () => window.removeEventListener('guest-mode-changed', onGuestEvent as EventListener);
+  }, []);
 
   const handleAuthAction = async () => {
     if (!isLoggedIn) {
@@ -79,6 +119,7 @@ export default function TopBar() {
       localStorage.removeItem("userId");
       localStorage.removeItem("userExtraData");
       localStorage.setItem("isLoggedIn", "false");
+      localStorage.setItem("isGuest", "false");
       storeLogout();
 
       // 4. 첫 페이지로 강제 이동
@@ -147,15 +188,17 @@ export default function TopBar() {
       <LoginModal isOpen={isLoginModalOpen} onClose={closeLoginModal} state={"/quests"} />
       </header>
 
-      {/* masking tape 이미지 영역 - 배경 위에 겹쳐서 표시 (레이아웃 공간 차지 안함) */}
-      <div className="fixed top-10 left-0 right-0 z-60 w-full h-12 flex justify-center pointer-events-none">
-        <div className="relative w-full max-w-screen-md flex justify-center" style={{ transform: "rotate(-5deg)" }}>
-          <img src="/masking_tape.png" alt="masking tape" className="w-full object-contain" />
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <span className="text-base font-semibold text-[#724b20] drop-shadow-[0_2px_2px_rgba(0,0,0,0.35)] select-none">지금은 체험 여행 중이에요</span>
+      {/* masking tape 이미지 영역 - 게스트 모드일 때만 배경 위에 겹쳐서 표시 (레이아웃 공간 차지 안함) */}
+      {isGuestMode && (
+        <div className="fixed top-10 left-0 right-0 z-60 w-full h-12 flex justify-center pointer-events-none">
+          <div className="relative w-full max-w-screen-md flex justify-center" style={{ transform: "rotate(-5deg)" }}>
+            <img src="/masking_tape.png" alt="masking tape" className="w-full object-contain" />
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <span className="text-base font-semibold text-[#724b20] drop-shadow-[0_2px_2px_rgba(0,0,0,0.35)] select-none">지금은 체험 여행 중이에요</span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </>
     );
 }

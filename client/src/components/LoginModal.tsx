@@ -49,7 +49,13 @@ export default function LoginModal({ isOpen, onClose, state }: LoginModalProps) 
     try {
       const resp = await api.post("/auth/guest");
       await handleLoginSuccess(resp.data, setAuth, router, state);
-      onClose();
+        try {
+          localStorage.setItem("isGuest", "true");
+        } catch {}
+        try {
+          window.dispatchEvent(new CustomEvent('guest-mode-changed', { detail: true }));
+        } catch {}
+        onClose();
     } catch (err: unknown) {
       console.error("Guest login failed", err);
       alert("게스트 로그인에 실패했습니다.");

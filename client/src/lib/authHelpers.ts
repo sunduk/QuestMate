@@ -36,6 +36,13 @@ export async function handleLoginSuccess(
     }
 
     // navigate
+    // any non-guest login should clear the guest flag
+    try {
+      localStorage.removeItem("isGuest");
+    } catch {}
+    try {
+      window.dispatchEvent(new CustomEvent('guest-mode-changed', { detail: false }));
+    } catch {}
     router.push(state || "/");
   } else {
     throw new Error("로그인 정보를 받지 못했습니다.");
