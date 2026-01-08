@@ -11,6 +11,7 @@ interface VerificationFeedProps {
   editingPreviewUrl: string | null;
   editingRemovedImage: boolean;
   deletingVerifyId: number | null;
+  editingCommentInvalid?: boolean;
   onStartEdit: (v: VerificationViewModel) => void;
   onCancelEdit: () => void;
   onSubmitEdit: () => void;
@@ -27,6 +28,7 @@ type VerificationItemProps = {
   editingComment: string;
   editingRemovedImage: boolean;
   deletingVerifyId: number | null;
+  editingCommentInvalid?: boolean;
   onStartEdit: (v: VerificationViewModel) => void;
   onCancelEdit: () => void;
   onSubmitEdit: () => void;
@@ -54,6 +56,7 @@ const VerificationItem = ({
   onRemoveEditImage,
   isLoggedIn,
   myAvatarNumber,
+  editingCommentInvalid,
 }: VerificationItemProps) => {
   const { src: protectedSrc } = useProtectedImage(v.fileId);
 
@@ -159,7 +162,9 @@ const VerificationItem = ({
             value={editingComment ?? ""}
             onChange={(e) => onEditCommentChange(e.target.value)}
             placeholder="한줄 소감을 남겨주세요."
-            className="w-full rounded-lg border border-[#d6c6ac] bg-white/50 p-2 text-sm outline-none focus:border-[#553b24] text-[#482e17]"
+            className={`w-full rounded-lg bg-white/50 p-2 text-sm outline-none text-[#482e17] ${
+              editingCommentInvalid ? "border-red-500 ring-2 ring-red-500" : "border-[#d6c6ac] focus:border-[#553b24]"
+            }`}
             rows={2}
           />
           <div className="flex gap-2">
@@ -204,6 +209,7 @@ export const VerificationFeed = ({
   onEditCommentChange,
   onEditImageChange,
   onRemoveEditImage,
+  editingCommentInvalid,
 }: VerificationFeedProps) => {
 
   const { token: storeToken, user } = useAuthStore();
@@ -244,6 +250,7 @@ export const VerificationFeed = ({
           onEditCommentChange={onEditCommentChange}
           onEditImageChange={onEditImageChange}
           onRemoveEditImage={onRemoveEditImage}
+          editingCommentInvalid={editingCommentInvalid}
           isLoggedIn={isLoggedIn}
           myAvatarNumber={myAvatarNumber}
         />

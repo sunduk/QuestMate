@@ -91,6 +91,7 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
               editingComment={verification.editingComment}
               editingPreviewUrl={verification.editingPreviewUrl}
               editingRemovedImage={verification.editingRemovedImage}
+                editingCommentInvalid={verification.editingCommentInvalid}
               deletingVerifyId={verification.deletingVerifyId}
               onStartEdit={verification.startEdit}
               onCancelEdit={verification.cancelEdit}

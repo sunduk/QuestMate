@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { isAxiosError } from "axios";
 import { uploadVerification, updateVerification, deleteVerification } from "../api";
 import { QuestViewModel, VerificationViewModel } from "../types";
@@ -19,6 +19,7 @@ export const useQuestVerification = (
   const [editingPreviewUrl, setEditingPreviewUrl] = useState<string | null>(null);
   const [editingComment, setEditingComment] = useState<string>("");
   const [editingRemovedImage, setEditingRemovedImage] = useState<boolean>(false);
+  const [editingCommentInvalid, setEditingCommentInvalid] = useState<boolean>(false);
 
   // 삭제
   const [deletingVerifyId, setDeletingVerifyId] = useState<number | null>(null);
@@ -110,6 +111,11 @@ export const useQuestVerification = (
       return;
     }
 
+    if ((editingComment ?? "").trim() === "") {
+      setEditingCommentInvalid(true);
+      return;
+    }
+
     try {
       const result = await updateVerification(
         quest.id,
@@ -149,6 +155,12 @@ export const useQuestVerification = (
       }
     }
   };
+
+  useEffect(() => {
+    if (editingCommentInvalid && (editingComment ?? "").trim() !== "") {
+      setEditingCommentInvalid(false);
+    }
+  }, [editingComment, editingCommentInvalid]);
 
   // ----------------------------------------------------------------------
   // [삭제]
@@ -204,6 +216,7 @@ export const useQuestVerification = (
     editingComment,
     editingPreviewUrl,
     editingRemovedImage,
+    editingCommentInvalid,
     setEditingComment,
     startEdit,
     cancelEdit,
