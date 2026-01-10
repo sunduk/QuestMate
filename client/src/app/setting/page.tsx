@@ -72,6 +72,7 @@ function AutoFitText({
 export default function SettingPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+  const token = useAuthStore((state) => state.token);
 
   // nickname edit UI state
   const [isEditingNickname, setIsEditingNickname] = useState(false);
@@ -242,11 +243,19 @@ export default function SettingPage() {
   // Also refresh when other parts of the app emit a `user:update` event,
   // when localStorage changes (other tabs), or when window gains focus.
   useEffect(() => {
+    // If there's no token in the app store and no accessToken in localStorage,
+    // the user is effectively logged out — skip calling the protected API.
+    const hasToken = !!token || (typeof window !== 'undefined' && !!localStorage.getItem('accessToken'));
+    if (!hasToken) return;
+
     fetchUserInfo();
 
     const onUserUpdate = () => fetchUserInfo();
     const onStorage = (e: StorageEvent) => {
-      if (e.key === 'auth-storage' || e.key === 'accessToken') fetchUserInfo();
+      if (e.key === 'auth-storage' || e.key === 'accessToken') {
+        const nowHasToken = !!useAuthStore.getState().token || (typeof window !== 'undefined' && !!localStorage.getItem('accessToken'));
+        if (nowHasToken) fetchUserInfo();
+      }
     };
 
     window.addEventListener('user:update', onUserUpdate);
@@ -256,7 +265,7 @@ export default function SettingPage() {
       window.removeEventListener('user:update', onUserUpdate);
       window.removeEventListener('storage', onStorage);
     };
-  }, []);
+  }, [token]);
 
   // cleanup success timeout on unmount
   useEffect(() => {

@@ -44,7 +44,7 @@ api.interceptors.response.use(
   (error) => {
     // 공통 에러 처리
     if (error.response?.status === 401) {
-      console.warn("세션이 만료되었습니다. 로그아웃 처리합니다.");
+      //console.warn("세션이 만료되었습니다. 로그아웃 처리합니다.");
       
       if (typeof window !== 'undefined') {
         // 토큰 삭제 및 로그인 페이지로 강제 이동

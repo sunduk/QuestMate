@@ -1,61 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { fetchQuestDetail } from "../api";
 import { QuestDetailDto, QuestViewModel } from "../types";
-import { AVATAR_ICONS, getAvatarPath } from "../../../../lib/avatarIcons";
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7173";
-const IMAGE_BASE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || "https://localhost:7173";
-
-const getRandomAvatar = (avatarNumber: number) => {
-  // const emojis = ["🧑‍🦰", "🧟‍♂️", "👨", "🐤", "🐶", "🐱"];
-  // return emojis[uid % emojis.length];
-
-  const icons = [
-    "/usericon/type03_calendar01",
-    "/usericon/type03_default01",
-    "/usericon/type03_default02",
-    "/usericon/type03_default04",
-    "/usericon/type03_footprint",
-    "/usericon/type03_footprint02",
-    "/usericon/type03_pencil01",
-    "/usericon/typeo3_footprint02",
-    "/usericon/girl.png", 
-    "/usericon/kid.png",
-    "/usericon/type02_baby_smile.png",
-    "/usericon/type02_baby_surprise.png",
-    "/usericon/type02_baby02_idle.png",
-    "/usericon/type02_baby03_idle.png",
-    "/usericon/type02_baby04_idle.png",
-    "/usericon/type02_bear_angry.png",
-    "/usericon/type02_bear_sleepy.png",
-    "/usericon/type02_bear_smile.png",
-    "/usericon/type02_cat_angry.png",
-    "/usericon/type02_cat_idle.png",
-    "/usericon/type02_cat_smile.png",
-    "/usericon/type02_cat02_angry.png",
-    "/usericon/type02_cat02_idle.png",
-    "/usericon/type02_cat02_sleepy.png",
-    "/usericon/type02_doci_sleepy.png",
-    "/usericon/type02_doci_smile.png",
-    "/usericon/type02_doci_surprise.png",
-    "/usericon/type02_dog_smile.png",
-    "/usericon/type02_dog_wink.png",
-    "/usericon/type02_girl_angry.png",
-    "/usericon/type02_girl_cry.png",
-    "/usericon/type02_girl_smile.png",
-    "/usericon/type02_leap_blue.png",
-    "/usericon/type02_leap_red.png",
-    "/usericon/type02_leap_yellow.png",
-    "/usericon/type02_penguin_angry.png",
-    "/usericon/type02_penguin_sleepy.png",
-    "/usericon/type02_penguin_smile.png",
-    "/usericon/type02_rose01_blue.png",
-    "/usericon/type02_rose01_red.png",
-    "/usericon/type02_rose01_yellow.png"
-  ]
-  return icons[avatarNumber];
-  //return icons[uid % icons.length];
-};
+import { getAvatarPath } from "../../../../lib/avatarIcons";
 
 const mapDataToViewModel = (data: QuestDetailDto, myId?: number): QuestViewModel => {
   return {
@@ -143,7 +89,7 @@ export const useQuestDetail = (questId: string, userId?: number) => {
     } finally {
       setIsLoading(false);
     }
-  }, [questId, userId]);
+  }, [questId]);
 
   useEffect(() => {
     loadQuest();

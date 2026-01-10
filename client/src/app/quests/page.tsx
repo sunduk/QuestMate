@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import api from "../../lib/axios"; // 우리가 만든 Axios 인스턴스
+import axios from "axios";
 
 // ----------------------------------------------------------------------
 // [데이터 모델] 더미 데이터 구조 정의
@@ -80,6 +81,12 @@ export default function QuestListPage() {
       setIsLoading(true);
       
       // 1. API 요청 (GET /api/quest)
+      const accessToken = localStorage.getItem("accessToken");
+      if (accessToken === null) {
+        //console.log("토큰 없음");
+        return;
+      }
+
       const response = await api.get("/quest/list");
       const { success, items } = response.data; // QuestListResultDto
 
@@ -109,7 +116,20 @@ export default function QuestListPage() {
       }
 
     } catch (error) {
-      console.error("API Error:", error);
+      // TypeScript 환경에서는 catch 변수에 any를 직접 쓰지 않습니다.
+      // Axios 에러인지 안전하게 검사한 뒤 처리합니다.
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          // silent: do nothing for 401
+        } else {
+          console.error("퀘스트 로드 중 오류:", error);
+          alert("퀘스트를 불러오는 중 오류가 발생했습니다.");
+        }
+      } else {
+        // Axios 에러가 아닌 일반 오류
+        console.error("퀘스트 로드 중 알 수 없는 오류:", error);
+        alert("퀘스트를 불러오는 중 오류가 발생했습니다.");
+      }
     } finally {
       setIsLoading(false);
     }

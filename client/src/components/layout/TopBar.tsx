@@ -13,19 +13,13 @@ export default function TopBar() {
   const router = useRouter();
   const { token: storeToken, logout: storeLogout, user } = useAuthStore();
   const { isLoginModalOpen, openLoginModal, closeLoginModal } = useModalStore();
-  const [isGuestMode, setIsGuestMode] = useState<boolean>(() => {
-    try {
-      return localStorage.getItem("isGuest") === "true";
-    } catch {
-      return false;
-    }
-  });
+  const [isGuestMode, setIsGuestMode] = useState<boolean>(false);
   
   // 스토어의 토큰 존재 여부로 로그인 상태 판단
   const isLoggedIn = !!storeToken;
 
-  // 스토어에서 avatarNumber 가져오기 (없으면 localStorage fallback)
-  const avatarNumber = user?.avatarNumber ?? Number(localStorage.getItem("avatarNumber")) ?? 0;
+  // avatarNumber를 스토어 우선, 없으면 localStorage에서 읽도록 클라이언트에서 처리
+  const [avatarNumberState, setAvatarNumberState] = useState<number>(user?.avatarNumber ?? 0);
   const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
   const avatarWrapperRef = useRef<HTMLDivElement>(null);
   const [isExitModalOpen, setIsExitModalOpen] = useState(false);
@@ -54,9 +48,25 @@ export default function TopBar() {
   // Keep guest mode state in sync with localStorage and auth changes
   useEffect(() => {
     try {
-      setIsGuestMode(localStorage.getItem("isGuest") === "true");
+      if (typeof window !== "undefined") {
+        setIsGuestMode(localStorage.getItem("isGuest") === "true");
+      }
     } catch {}
   }, [storeToken, user]);
+
+  // 클라이언트에서 localStorage에 저장된 avatarNumber를 읽어 상태에 반영
+  useEffect(() => {
+    try {
+      if (user?.avatarNumber !== undefined && user?.avatarNumber !== null) {
+        setAvatarNumberState(user.avatarNumber);
+        return;
+      }
+      if (typeof window !== "undefined") {
+        const v = Number(localStorage.getItem("avatarNumber"));
+        if (!Number.isNaN(v)) setAvatarNumberState(v);
+      }
+    } catch {}
+  }, [user]);
 
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
@@ -163,14 +173,14 @@ export default function TopBar() {
           <div className="relative">
             <div ref={avatarWrapperRef}>
               <button onClick={() => router.push("/setting")}>
-                <UserAvatar avatarNumber={avatarNumber} size={36} className="cursor-pointer hover:brightness-110" />
+                <UserAvatar avatarNumber={avatarNumberState} size={36} className="cursor-pointer hover:brightness-110" />
               </button>
 
               {/* 아바타 선택 모달 */}
               <AvatarSelectModal 
                 isOpen={isAvatarModalOpen}
                 onClose={() => setIsAvatarModalOpen(false)}
-                currentAvatarNumber={avatarNumber}
+                currentAvatarNumber={avatarNumberState}
               />
           </div>
           </div>

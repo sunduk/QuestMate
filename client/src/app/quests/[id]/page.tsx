@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect, useRef } from "react";
 import { useAuthStore } from "../../../store/useAuthStore";
 import { useQuestDetail } from "./hooks/useQuestDetail";
 import { useQuestMembership } from "./hooks/useQuestMembership";
@@ -15,6 +15,16 @@ interface QuestDetailPageProps {
 }
 
 export default function QuestDetailPage({ params }: QuestDetailPageProps) {
+  // Log once on the client — guard against StrictMode double-mount and re-renders
+  const _didLogRef = useRef(false);
+  useEffect(() => {
+    if (!_didLogRef.current) {
+      console.log("QuestDetailPage 렌더링");
+      _didLogRef.current = true;
+    }
+  }, []);
+
+  console.log("QuestDetailPage 실행");
   const { id } = use(params);
   const { user } = useAuthStore();
 

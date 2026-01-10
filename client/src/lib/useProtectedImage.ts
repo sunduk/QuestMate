@@ -10,7 +10,8 @@ export const useProtectedImage = (fileId?: number | null) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!fileId) {
+    // fileId가 없거나 토큰이 없으면 API 호출하지 않음
+    if (!fileId || !token) {
       setSrc(null);
       setLoading(false);
       setError(null);
@@ -28,6 +29,14 @@ export const useProtectedImage = (fileId?: number | null) => {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
         if (!res.ok) {
+          // 401(Unauthorized)은 로그아웃 상태이므로 조용히 처리
+          if (res.status === 401) {
+            if (!canceled) {
+              setSrc(null);
+              setError(null);
+            }
+            return;
+          }
           throw new Error(`HTTP ${res.status}`);
         }
 
