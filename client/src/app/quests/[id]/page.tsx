@@ -33,6 +33,22 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
   const { isJoining, isLeaving, handleJoin, handleLeave } = useQuestMembership(quest, user?.id);
   const verification = useQuestVerification(quest, setQuest);
 
+  useEffect(() => {
+    if (!quest) return;
+    const uid = user?.id;
+    const isMy = (otherId: number) => typeof uid === "number" && uid === otherId;
+
+    const newParticipants = quest.participants.map((p) => ({ ...p, isMe: isMy(p.userId) }));
+    const newVerifications = quest.verifications.map((v) => ({ ...v, isMine: isMy(v.userId) }));
+
+    const participantsChanged = newParticipants.some((p, i) => p.isMe !== quest.participants[i].isMe);
+    const verificationsChanged = newVerifications.some((v, i) => v.isMine !== quest.verifications[i].isMine);
+
+    if (participantsChanged || verificationsChanged) {
+      setQuest({ ...quest, participants: newParticipants, verifications: newVerifications });
+    }
+  }, [user?.id, quest, setQuest]);
+
   // Loading & Error
   if (isLoading) return <div className="p-10 text-center">로딩 중... 🔄</div>;
   if (error || !quest)

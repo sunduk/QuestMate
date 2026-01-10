@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, memo } from "react";
 
 interface VerificationFormProps {
   isJoined: boolean;
@@ -16,7 +16,7 @@ interface VerificationFormProps {
   onCancel: () => void;
 }
 
-export const VerificationForm = ({
+const VerificationFormComponent = ({
   isJoined,
   isCompleted,
   isJoining,
@@ -179,3 +179,5 @@ export const VerificationForm = ({
     </div>
   );
 };
+
+export const VerificationForm = memo(VerificationFormComponent);

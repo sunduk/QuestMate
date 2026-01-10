@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { isAxiosError } from "axios";
 import { uploadVerification, updateVerification, deleteVerification } from "../api";
 import { QuestViewModel, VerificationViewModel } from "../types";
@@ -226,7 +226,7 @@ export const useQuestVerification = (
     previewUrl,
     comment,
     commentInvalid,
-    setComment,
+    setComment: useCallback((value: string) => setComment(value), []),
     setPreviewUrl,
     setVerifyImage,
     handleFileChange,
@@ -238,7 +238,7 @@ export const useQuestVerification = (
     editingPreviewUrl,
     editingRemovedImage,
     editingCommentInvalid,
-    setEditingComment,
+    setEditingComment: useCallback((value: string) => setEditingComment(value), []),
     startEdit,
     cancelEdit,
     handleEditImageChange,
