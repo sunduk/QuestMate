@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { isAxiosError } from "axios";
+import showConfirm from "../../../../lib/showConfirm";
 import { uploadVerification, updateVerification, deleteVerification } from "../api";
 import { QuestViewModel, VerificationViewModel } from "../types";
 
@@ -49,8 +50,9 @@ export const useQuestVerification = (
       return;
     }
     
-    const confirmMsg = verifyImage ? "이 사진으로 인증하시겠습니까?" : "사진 없이 인증하시겠습니까?";
-    if (!confirm(confirmMsg)) return;
+    // const confirmMsg = verifyImage ? "이 사진으로 인증하시겠습니까?" : "사진 없이 인증하시겠습니까?";
+    // const ok = await showConfirm(confirmMsg);
+    // if (!ok) return;
 
     setIsVerifying(true);
 
@@ -58,7 +60,7 @@ export const useQuestVerification = (
       const result = await uploadVerification(quest.id, verifyImage, comment);
 
       if (result.success) {
-        alert("인증 완료! 오늘도 한 걸음 성장하셨네요! 💪");
+        //alert("인증 완료! 오늘도 한 걸음 성장하셨네요! 💪");
         setVerifyImage(null);
         setPreviewUrl(null);
         setComment("");
@@ -187,7 +189,8 @@ export const useQuestVerification = (
   // ----------------------------------------------------------------------
   const handleDelete = async (verifyId: number) => {
     if (!quest) return;
-    if (!window.confirm("정말 이 인증샷을 삭제하시겠습니까?")) return;
+    const ok = await showConfirm("정말 이 인증샷을 삭제하시겠습니까?");
+    if (!ok) return;
 
     setDeletingVerifyId(verifyId);
 
@@ -195,7 +198,7 @@ export const useQuestVerification = (
       const result = await deleteVerification(quest.id, verifyId);
 
       if (result.success) {
-        alert("인증샷이 삭제되었습니다.");
+        //alert("인증샷이 삭제되었습니다.");
         setQuest((prev) => {
           if (!prev) return null;
           return {
