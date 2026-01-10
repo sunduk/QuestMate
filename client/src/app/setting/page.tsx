@@ -150,7 +150,6 @@ export default function SettingPage() {
       const dto = response.data as UserDto;
 
       if (dto) {
-        console.log("유저 정보 로드:", dto);
         // 2. 데이터 파싱 (Server DTO -> Client Store)
         const currentUser = useAuthStore.getState().user;
 
@@ -199,40 +198,12 @@ export default function SettingPage() {
     }
   };
 
-  const handleLogout = async () => {
-    // 로그아웃 처리
+  const handleLogout = () => {
+    // Delegate logout to TopBar's handler via a global event so logic stays in one place.
     try {
-      // 1. 스토어에서 토큰 가져오기
-      const token = useAuthStore.getState().token;
-
-      if (!token) {
-        useAuthStore.getState().logout();
-        localStorage.setItem("isLoggedIn", "false");
-        router.replace("/");
-        return;
-      }
-
-      // 2. 로그아웃 요청
-      await api.post(
-        "https://localhost:7173/api/auth/logout", 
-        {}, 
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-    } catch (error) {
-      console.error("로그아웃 실패:", error);
-    } finally {
-      // 5. 로컬 스토리지 및 스토어 정리 (token은 store.logout()이 자동 처리)
-      localStorage.removeItem("userId");
-      localStorage.removeItem("userExtraData");
-      localStorage.setItem("isLoggedIn", "false");
-      useAuthStore.getState().logout();
-
-      // 4. 첫 페이지로 강제 이동
-      router.replace("/"); 
+      window.dispatchEvent(new Event('app:logout'));
+    } catch (e) {
+      console.error('Failed to dispatch app:logout', e);
     }
   };
 

@@ -9,6 +9,7 @@ import { QuestHeader } from "./components/QuestHeader";
 import { ParticipantList } from "./components/ParticipantList";
 import { VerificationFeed } from "./components/VerificationFeed";
 import { VerificationForm } from "./components/VerificationForm";
+import { AuthRequired } from "../../../components/AuthRequired";
 
 interface QuestDetailPageProps {
   params: Promise<{ id: string }>;
@@ -51,8 +52,10 @@ export default function QuestDetailPage({ params }: QuestDetailPageProps) {
 
   // Loading & Error
   if (isLoading) return <div className="p-10 text-center">로딩 중... 🔄</div>;
-  if (error || !quest)
-    return <div className="p-10 text-center text-red-500">{error || "퀘스트 없음"}</div>;
+  if (error === "401") return <AuthRequired />;
+
+  if (!quest)
+    return <div className="p-10 text-center text-red-500">퀘스트를 불러올 수 없습니다.</div>;
 
   const myProgress = quest.participants.find((p) => p.isMe);
   const isCompleted = myProgress ? myProgress.current >= quest.durationDays : false;

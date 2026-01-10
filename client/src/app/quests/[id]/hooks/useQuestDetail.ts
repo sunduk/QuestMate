@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import axios from "axios";
 import { fetchQuestDetail } from "../api";
 import { QuestDetailDto, QuestViewModel } from "../types";
 import { getAvatarPath } from "../../../../lib/avatarIcons";
@@ -84,9 +85,14 @@ export const useQuestDetail = (questId: string, userId?: number) => {
         setError(result.error || "정보 로드 실패");
       }
     } catch (err) {
-      console.error(err);
-      setError("서버 통신 오류");
-    } finally {
+        if (axios.isAxiosError(err) && err.response?.status === 401) {
+          // Unauthorized — user likely not logged in; don't surface an error message
+          setError(err.response?.status.toString());
+        } else {
+          console.error(err);
+          setError("서버 통신 오류");
+        }
+      } finally {
       setIsLoading(false);
     }
   }, [questId]);

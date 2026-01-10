@@ -94,7 +94,7 @@ export default function TopBar() {
     return () => window.removeEventListener('guest-mode-changed', onGuestEvent as EventListener);
   }, []);
 
-  const handleAuthAction = async () => {
+  const handleLogout = async () => {
     if (!isLoggedIn) {
       openLoginModal();
       return;
@@ -139,8 +139,23 @@ export default function TopBar() {
 
   const handleExitGuestMode = () => {
     setIsExitModalOpen(false);
-    handleAuthAction();
+    handleLogout();
   }
+
+  // Allow other parts of the app to trigger logout via a global event.
+  // Dispatch with: `window.dispatchEvent(new Event('app:logout'))`.
+  useEffect(() => {
+    const onAppLogout = () => {
+      try {
+        handleLogout();
+      } catch (e) {
+        console.error('app:logout handler failed', e);
+      }
+    };
+
+    window.addEventListener('app:logout', onAppLogout as EventListener);
+    return () => window.removeEventListener('app:logout', onAppLogout as EventListener);
+  }, [handleLogout]);
 
   return (
     <>
@@ -186,7 +201,7 @@ export default function TopBar() {
         )}
         
         <button 
-          onClick={isGuestMode ? () => setIsExitModalOpen(true) : handleAuthAction}
+          onClick={isGuestMode ? () => setIsExitModalOpen(true) : handleLogout}
           className="relative flex h-10 w-23 items-center justify-center transition active:scale-95 hover:brightness-110"
         >
           <div 
