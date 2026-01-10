@@ -61,9 +61,9 @@ namespace QuestMateAPI.Controllers
         }
 
         // 퀘스트 상세 조회 (GET /api/quest/{id})
-        [HttpGet("{id}")]
+        [HttpGet("{publicId}")]
         [Authorize]
-        public async Task<IActionResult> GetDetail(long id)
+        public async Task<IActionResult> GetDetail(string publicId)
         {
             // 1. 내 ID 확인 (로그인 했다면 토큰에서 꺼냄, 안 했으면 0)
             long userId = 0;
@@ -74,8 +74,12 @@ namespace QuestMateAPI.Controllers
                 long.TryParse(userIdStr, out userId);
             }
 
-            // 2. 서비스 호출 (questId, myUserId)
-            var result = await _questService.GetQuestDetailAsync(id, userId);
+            // 2. resolve publicId -> internal id
+            var questId = await _questService.ResolveQuestIdByPublicIdAsync(publicId);
+            if (questId == null) return NotFound(new { Success = false, Error = "QUEST_NOT_FOUND" });
+
+            // 3. 서비스 호출 (questId, myUserId)
+            var result = await _questService.GetQuestDetailAsync(questId.Value, userId);
 
             // 3. 결과 처리
             if (!result.Success)
@@ -99,8 +103,12 @@ namespace QuestMateAPI.Controllers
             var userIdStr = User.FindFirst("uid")?.Value;
             if (!long.TryParse(userIdStr, out long userId)) return Unauthorized();
 
-            // 2. 서비스 호출
-            var result = await _questService.JoinQuestAsync(dto.QuestId, userId);
+            // 2. resolve publicId -> internal id
+            var questId = await _questService.ResolveQuestIdByPublicIdAsync(dto.PublicId);
+            if (questId == null) return NotFound(new { Success = false, Error = "QUEST_NOT_FOUND" });
+
+            // 3. 서비스 호출
+            var result = await _questService.JoinQuestAsync(questId.Value, userId);
 
             if (!result.Success)
             {
@@ -119,7 +127,12 @@ namespace QuestMateAPI.Controllers
         public async Task<IActionResult> Leave([FromBody] QuestJoinRequestDto dto)
         {
             var userId = long.Parse(User.FindFirst("uid")?.Value ?? "0");
-            var result = await _questService.LeaveQuestAsync(dto.QuestId, userId);
+
+            // resolve publicId -> internal id
+            var questId = await _questService.ResolveQuestIdByPublicIdAsync(dto.PublicId);
+            if (questId == null) return NotFound(new { Success = false, Error = "QUEST_NOT_FOUND" });
+
+            var result = await _questService.LeaveQuestAsync(questId.Value, userId);
 
             if (!result.Success) return BadRequest(result);
             return Ok(result);
@@ -136,10 +149,14 @@ namespace QuestMateAPI.Controllers
                 return Unauthorized();
             }
 
-            // 2. 서비스 호출 (파일 저장 -> DB 기록)
-            var result = await _questService.VerifyQuestAsync(userId, dto);
+            // 2. resolve publicId -> internal id
+            var questId = await _questService.ResolveQuestIdByPublicIdAsync(dto.PublicId);
+            if (questId == null) return NotFound(new { Success = false, Error = "QUEST_NOT_FOUND" });
 
-            // 3. 결과 처리
+            // 3. 서비스 호출 (파일 저장 -> DB 기록)
+            var result = await _questService.VerifyQuestAsync(userId, questId.Value, dto);
+
+            // 4. 결과 처리
             if (!result.Success)
             {
                 // 에러 메시지에 따라 상태코드 분기 가능
@@ -156,7 +173,11 @@ namespace QuestMateAPI.Controllers
             var userIdStr = User.FindFirst("uid")?.Value;
             if (!long.TryParse(userIdStr, out long userId)) return Unauthorized();
 
-            var result = await _questService.DeleteVerificationAsync(userId, dto);
+            // resolve publicId -> internal id
+            var questId = await _questService.ResolveQuestIdByPublicIdAsync(dto.PublicId);
+            if (questId == null) return NotFound(new { Success = false, Error = "QUEST_NOT_FOUND" });
+
+            var result = await _questService.DeleteVerificationAsync(userId, questId.Value, dto);
 
             if (!result.Success)
             {
@@ -174,7 +195,11 @@ namespace QuestMateAPI.Controllers
             var userIdStr = User.FindFirst("uid")?.Value;
             if (!long.TryParse(userIdStr, out long userId)) return Unauthorized();
 
-            var result = await _questService.UpdateVerificationAsync(userId, dto);
+            // resolve publicId -> internal id
+            var questId = await _questService.ResolveQuestIdByPublicIdAsync(dto.PublicId);
+            if (questId == null) return NotFound(new { Success = false, Error = "QUEST_NOT_FOUND" });
+
+            var result = await _questService.UpdateVerificationAsync(userId, questId.Value, dto);
 
             if (!result.Success)
             {

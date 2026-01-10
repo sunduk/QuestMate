@@ -22,7 +22,7 @@ export interface VerificationDto {
 }
 
 export interface QuestDetailDto {
-  id: number;
+  publicId: string;
   title: string;
   category: number;
   targetCount: number;
@@ -64,7 +64,8 @@ export interface VerificationViewModel {
 }
 
 export interface QuestViewModel {
-  id: number;
+  // publicId 추가하기
+  publicId: string;
   title: string;
   description: string;
   icon: string;

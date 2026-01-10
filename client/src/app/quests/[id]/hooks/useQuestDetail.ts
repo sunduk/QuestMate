@@ -6,7 +6,7 @@ import { getAvatarPath } from "../../../../lib/avatarIcons";
 
 const mapDataToViewModel = (data: QuestDetailDto, myId?: number): QuestViewModel => {
   return {
-    id: data.id,
+    publicId: data.publicId,
     title: data.title,
     description: `${data.durationDays}일 동안 남기는 노트입니다.`,
     targetCount: data.targetCount,
@@ -77,7 +77,7 @@ const mapDataToViewModel = (data: QuestDetailDto, myId?: number): QuestViewModel
   };
 };
 
-export const useQuestDetail = (questId: string, userId?: number) => {
+export const useQuestDetail = (publicId: string, userId?: number) => {
   const [quest, setQuest] = useState<QuestViewModel | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -85,7 +85,7 @@ export const useQuestDetail = (questId: string, userId?: number) => {
   const loadQuest = useCallback(async () => {
     try {
       setIsLoading(true);
-      const result = await fetchQuestDetail(questId);
+      const result = await fetchQuestDetail(publicId);
 
       if (result.success && result.data) {
         const mapped = mapDataToViewModel(result.data, userId);
@@ -104,7 +104,7 @@ export const useQuestDetail = (questId: string, userId?: number) => {
       } finally {
       setIsLoading(false);
     }
-  }, [questId]);
+  }, [publicId]);
 
   useEffect(() => {
     loadQuest();

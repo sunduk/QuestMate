@@ -28,6 +28,7 @@
     public class QuestDetailDto
     {
         public long Id { get; set; }
+        public string PublicId { get; set; }
         public string Title { get; set; }
         public int Category { get; set; }
         public int TargetCount { get; set; }

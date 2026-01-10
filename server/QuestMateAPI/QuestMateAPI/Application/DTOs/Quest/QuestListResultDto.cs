@@ -2,7 +2,7 @@
 {
     public class QuestItemDto
     {
-        public long Id { get; set; }
+        public string PublicId { get; set; }
         public string Title { get; set; }
         public int Category { get; set; }
         public int DurationDays { get; set; }

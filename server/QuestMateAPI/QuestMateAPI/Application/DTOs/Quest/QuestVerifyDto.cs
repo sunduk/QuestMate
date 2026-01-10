@@ -7,7 +7,7 @@ namespace QuestMateAPI.Application.DTOs.Quest
     public class QuestVerifyRequestDto
     {
         [Required]
-        public long QuestId { get; set; }
+        public string PublicId { get; set; }
 
         public string? Comment { get; set; } // "오늘 운동 완료!" 같은 한마디
 
@@ -30,7 +30,7 @@ namespace QuestMateAPI.Application.DTOs.Quest
     public class QuestVerifyDeleteRequestDto
     {
         [Required]
-        public long QuestId { get; set; }
+        public string PublicId { get; set; }
 
         [Required]
         public long VerificationId { get; set; }
@@ -47,7 +47,7 @@ namespace QuestMateAPI.Application.DTOs.Quest
     public class QuestVerifyUpdateRequestDto
     {
         [Required]
-        public long QuestId { get; set; }
+        public string PublicId { get; set; }
 
         [Required]
         public long VerificationId { get; set; }

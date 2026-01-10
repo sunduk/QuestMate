@@ -4,6 +4,6 @@
     {
         public bool Success { get; set; }
         public string? Error { get; set; }
-        public long Id { get; set; }
+        public string? PublicId { get; set; }
     }
 }

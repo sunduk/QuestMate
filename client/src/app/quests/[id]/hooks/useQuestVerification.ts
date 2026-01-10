@@ -57,7 +57,7 @@ export const useQuestVerification = (
     setIsVerifying(true);
 
     try {
-      const result = await uploadVerification(quest.id, verifyImage, comment);
+      const result = await uploadVerification(quest.publicId, verifyImage, comment);
 
       if (result.success) {
         //alert("인증 완료! 오늘도 한 걸음 성장하셨네요! 💪");
@@ -127,7 +127,7 @@ export const useQuestVerification = (
 
     try {
       const result = await updateVerification(
-        quest.id,
+        quest.publicId,
         editingVerifyId,
         editingComment,
         // send File when a new file was selected, undefined when no change,
@@ -193,7 +193,7 @@ export const useQuestVerification = (
     setDeletingVerifyId(verifyId);
 
     try {
-      const result = await deleteVerification(quest.id, verifyId);
+      const result = await deleteVerification(quest.publicId, verifyId);
 
       if (result.success) {
         //alert("인증샷이 삭제되었습니다.");

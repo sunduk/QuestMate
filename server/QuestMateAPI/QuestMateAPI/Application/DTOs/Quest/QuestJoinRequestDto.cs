@@ -5,6 +5,6 @@ namespace QuestMateAPI.Application.DTOs.Quest
     public class QuestJoinRequestDto
     {
         [Required]
-        public long QuestId { get; set; }
+        public string PublicId { get; set; }
     }
 }

@@ -36,15 +36,16 @@ namespace QuestMateAPI.Infrastructure.Repositories
                 // LAST_INSERT_ID()로 생성된 방 번호를 바로 가져옵니다.
                 var sqlQuest = @"
                 INSERT INTO Quest 
-                (title, category, target_count, duration_days, entry_fee, max_member_count, image_url, host_user_id, status, current_member_count, created_at, updated_at)
+                (public_id, title, category, target_count, duration_days, entry_fee, max_member_count, image_url, host_user_id, status, current_member_count, created_at, updated_at)
                 VALUES 
-                (@Title, @Category, @TargetCount, @DurationDays, @EntryFee, @MaxMemberCount, @ImageUrl, @HostUserId, 0, 1, UTC_TIMESTAMP(), UTC_TIMESTAMP());
+                (@PublicId, @Title, @Category, @TargetCount, @DurationDays, @EntryFee, @MaxMemberCount, @ImageUrl, @HostUserId, 0, 1, UTC_TIMESTAMP(), UTC_TIMESTAMP());
                 
                 SELECT LAST_INSERT_ID();";
 
                 // Dapper의 QuerySingleAsync로 ID 반환받기
                 var questId = await conn.QuerySingleAsync<long>(sqlQuest, new
                 {
+                    PublicId = dto.PublicId,
                     dto.Title,
                     dto.Category,
                     dto.TargetCount,
@@ -88,6 +89,7 @@ namespace QuestMateAPI.Infrastructure.Repositories
             var sql = @"
             SELECT 
                 q.id AS Id,
+                q.public_id AS PublicId,
                 q.title AS Title,
                 q.category AS Category,
                 q.duration_days AS DurationDays,
@@ -107,6 +109,19 @@ namespace QuestMateAPI.Infrastructure.Repositories
             return await conn.QueryAsync<QuestItemDto>(sql, new { UserId = userId });
         }
 
+        public async Task<long?> GetQuestIdByPublicIdAsync(string publicId)
+        {
+            using var conn = _context.CreateConnection();
+
+            var sql = @"
+                SELECT id
+                FROM Quest
+                WHERE public_id = @PublicId
+                LIMIT 1";
+
+            return await conn.QuerySingleOrDefaultAsync<long?>(sql, new { PublicId = publicId });
+        }
+
         // 상세정보
         public async Task<QuestDetailDto?> GetQuestDetailAsync(long questId, long requestUserId)
         {
@@ -115,10 +130,10 @@ namespace QuestMateAPI.Infrastructure.Repositories
             // 쿼리 2개 동시 실행 (멀티 리절트)
             // 1. 퀘스트 기본 정보
             // 2. 참여자 목록 (User 테이블과 조인하여 닉네임, 아바타 가져옴)
-            var sql = @"
+        var sql = @"
         -- Query 1: Quest Info
         SELECT 
-            id, title, category, target_count, duration_days, entry_fee, 
+            id, public_id as PublicId, title, category, target_count, duration_days, entry_fee, 
             max_member_count, current_member_count, image_url, status
         FROM Quest
         WHERE id = @QuestId;
@@ -150,6 +165,9 @@ namespace QuestMateAPI.Infrastructure.Repositories
 
             // 3. 데이터 조립
             quest.Participants = members;
+
+            // map PublicId if property exists on DTO
+            // Dapper already mapped PublicId in the first query
 
             // 4. 내가 참여 중인지 확인 (IsJoined 계산)
             // 메모리에 가져온 멤버 리스트에서 내 ID가 있는지 찾음

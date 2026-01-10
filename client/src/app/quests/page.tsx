@@ -10,7 +10,7 @@ import axios from "axios";
 // ----------------------------------------------------------------------
 // A. 서버에서 날아오는 원본 패킷 구조 (DTO)
 interface QuestItemDto {
-  id: number;
+  publicId?: string;
   title: string;
   category: number; // 0:운동, 1:공부...
   durationDays: number;
@@ -25,7 +25,7 @@ interface QuestItemDto {
 // B. 클라이언트 UI에서 사용할 구조 (ViewModel)
 // -> 기존 더미 데이터 구조와 동일하게 유지
 interface QuestViewModel {
-  id: number;
+  publicId: string; // 공개ID
   category: string; // "운동" (변환됨)
   title: string;
   duration: string; // "3일" (변환됨)
@@ -89,7 +89,7 @@ export default function QuestListPage() {
         // 2. 데이터 파싱 (Server DTO -> Client ViewModel)
         // 게임에서 패킷 받아서 캐릭터 객체 만드는 과정과 동일
         const parsedList: QuestViewModel[] = items.map((dto: QuestItemDto) => ({
-          id: dto.id,
+          publicId: dto.publicId,
           title: dto.title,
           fee: dto.entryFee,
           
@@ -187,7 +187,7 @@ export default function QuestListPage() {
               const progress = (quest.hostUserVerificationCount / quest.durationDays) * 100;
               
               return (
-              <Link href={`/quests/${quest.id}`} key={quest.id}>
+              <Link href={`/quests/${quest.publicId}`} key={quest.publicId}>
                 <div 
                   className="flex items-center gap-4 rounded-2xl bg-cover bg-center bg-no-repeat p-3 transition active:scale-95 active:shadow-none"
                   style={{ backgroundImage: isCompleted ? "url('/questslot_bg_complted.png')" : "url('/questslot_bg.png')" }}

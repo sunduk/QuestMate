@@ -12,12 +12,13 @@ namespace QuestMateAPI.Application.DTOs.Quest
 
         // 퀘스트 상세 조회
         Task<QuestDetailResultDto> GetQuestDetailAsync(long questId, long userId);
+        Task<long?> ResolveQuestIdByPublicIdAsync(string publicId);
 
         // 퀘스트 참가
         Task<QuestDetailResultDto> JoinQuestAsync(long questId, long userId);
-        Task<QuestVerifyResultDto> VerifyQuestAsync(long userId, QuestVerifyRequestDto dto);
-        Task<QuestVerifyDeleteResultDto> DeleteVerificationAsync(long userId, QuestVerifyDeleteRequestDto dto);
-        Task<QuestVerifyUpdateResultDto> UpdateVerificationAsync(long userId, QuestVerifyUpdateRequestDto dto);
+        Task<QuestVerifyResultDto> VerifyQuestAsync(long userId, long questId, QuestVerifyRequestDto dto);
+        Task<QuestVerifyDeleteResultDto> DeleteVerificationAsync(long userId, long questId, QuestVerifyDeleteRequestDto dto);
+        Task<QuestVerifyUpdateResultDto> UpdateVerificationAsync(long userId, long questId, QuestVerifyUpdateRequestDto dto);
         Task<QuestDetailResultDto> LeaveQuestAsync(long questId, long userId);
     }
 }

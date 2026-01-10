@@ -28,7 +28,7 @@ export const useQuestMembership = (quest: QuestViewModel | null, userId?: number
     setIsJoining(true);
 
     try {
-      const result = await joinQuest(quest.id);
+      const result = await joinQuest(quest.publicId);
 
       if (result.success && result.data) {
         onSuccess(result.data);
@@ -48,7 +48,7 @@ export const useQuestMembership = (quest: QuestViewModel | null, userId?: number
     }
   };
 
-  const handleLeave = async (questId: string) => {
+  const handleLeave = async (publicId: string) => {
     if (!quest) return;
 
     const myInfo = quest.participants.find((p) => p.isMe);
@@ -69,10 +69,10 @@ export const useQuestMembership = (quest: QuestViewModel | null, userId?: number
     setIsLeaving(true);
 
     try {
-      const result = await leaveQuest(quest.id);
+      const result = await leaveQuest(quest.publicId);
 
       if (result.success) {
-        alert("퀘스트를 탈퇴했습니다.");
+        //alert("퀘스트를 탈퇴했습니다.");
         router.replace("/quests");
       }
     } catch (err) {
@@ -91,7 +91,7 @@ export const useQuestMembership = (quest: QuestViewModel | null, userId?: number
         alert(`탈퇴 실패: ${errorCode || "서버 오류"}`);
       }
     } finally {
-      if (window.location.pathname.includes(`/quests/${questId}`)) {
+      if (window.location.pathname.includes(`/quests/${publicId}`)) {
         setIsLeaving(false);
       }
     }

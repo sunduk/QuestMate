@@ -20,12 +20,23 @@ namespace QuestMateAPI.Application.Services
             _fileStorage = fileStorage;
         }
 
+        public async Task<long?> ResolveQuestIdByPublicIdAsync(string publicId)
+        {
+            return await _repository.GetQuestIdByPublicIdAsync(publicId);
+        }
+
         public async Task<CreateQuestResultDto> CreateQuestAsync(long userId, CreateQuestRequestDto dto)
         {
             try
             {
                 // 1. DB 저장 요청 (방장 ID와 생성 정보 전달)
                 // Repository에서 트랜잭션 걸고 Insert 후 생성된 ID를 반환받습니다.
+                // generate publicId using Nanoid
+                var publicId = QuestMateAPI.Infrastructure.Services.NanoidHelper.Generate();
+
+                // set public id into dto (repository will use it)
+                dto.PublicId = publicId;
+
                 long? newQuestId = await _repository.CreateQuestAsync(userId, dto);
 
                 if (newQuestId == null)
@@ -44,7 +55,7 @@ namespace QuestMateAPI.Application.Services
                 return new CreateQuestResultDto
                 {
                     Success = true,
-                    Id = newQuestId.Value
+                    PublicId = publicId
                 };
             }
             catch (Exception ex)
@@ -165,7 +176,7 @@ namespace QuestMateAPI.Application.Services
             };
         }
 
-        public async Task<QuestVerifyResultDto> VerifyQuestAsync(long userId, QuestVerifyRequestDto dto)
+        public async Task<QuestVerifyResultDto> VerifyQuestAsync(long userId, long questId, QuestVerifyRequestDto dto)
         {
             try
             {
@@ -188,7 +199,7 @@ namespace QuestMateAPI.Application.Services
                 }
 
                 // 5. DB 업데이트 (Repository 호출)
-                var result = await _repository.VerifyQuestAsync(dto.QuestId, userId, imageUrl, dto.Comment);
+                var result = await _repository.VerifyQuestAsync(questId, userId, imageUrl, dto.Comment);
 
                 return new QuestVerifyResultDto
                 {
@@ -200,16 +211,16 @@ namespace QuestMateAPI.Application.Services
             }
             catch (Exception ex)
             {
-                //_logger.LogError(ex, "Verify Failed User:{UserId} Quest:{QuestId}", userId, dto.QuestId);
+                //_logger.LogError(ex, "Verify Failed User:{UserId} Quest:{QuestId}", userId, questId);
                 return new QuestVerifyResultDto { Success = false, Error = "INTERNAL_SERVER_ERROR" };
             }
         }
 
-        public async Task<QuestVerifyDeleteResultDto> DeleteVerificationAsync(long userId, QuestVerifyDeleteRequestDto dto)
+        public async Task<QuestVerifyDeleteResultDto> DeleteVerificationAsync(long userId, long questId, QuestVerifyDeleteRequestDto dto)
         {
             try
             {
-                string error = await _repository.DeleteVerificationAsync(dto.QuestId, dto.VerificationId, userId);
+                string error = await _repository.DeleteVerificationAsync(questId, dto.VerificationId, userId);
 
                 if (error != null)
                 {
@@ -224,7 +235,7 @@ namespace QuestMateAPI.Application.Services
             }
         }
 
-        public async Task<QuestVerifyUpdateResultDto> UpdateVerificationAsync(long userId, QuestVerifyUpdateRequestDto dto)
+        public async Task<QuestVerifyUpdateResultDto> UpdateVerificationAsync(long userId, long questId, QuestVerifyUpdateRequestDto dto)
         {
             try
             {
@@ -263,7 +274,7 @@ namespace QuestMateAPI.Application.Services
                 }
 
                 // 2. Repository 호출 (한 번만 호출)
-                string error = await _repository.UpdateVerificationAsync(dto.QuestId, dto.VerificationId, userId, dto.Comment, dto.RemoveImage, imageUrl);
+                string error = await _repository.UpdateVerificationAsync(questId, dto.VerificationId, userId, dto.Comment, dto.RemoveImage, imageUrl);
 
                 if (error != null)
                 {

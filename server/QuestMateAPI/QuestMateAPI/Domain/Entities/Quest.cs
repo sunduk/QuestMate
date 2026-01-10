@@ -6,6 +6,7 @@ namespace QuestMateAPI.Domain.Entities
     public class Quest
     {
         public long Id { get; set; }
+        public string publicId { get; set; }    // nano id 사용. 클라이언트 노출용.
         public string? Title { get; set; }
         public int Category { get; set; } // 0:운동, 1:공부...
         public int TargetCount { get; set; }

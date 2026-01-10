@@ -3,21 +3,21 @@ import api from "../../../lib/axios";
 // ----------------------------------------------------------------------
 // [퀘스트 조회]
 // ----------------------------------------------------------------------
-export const fetchQuestDetail = async (questId: string) => {
-  const response = await api.get(`/quest/${questId}`);
+export const fetchQuestDetail = async (publicId: string) => {
+  const response = await api.get(`/quest/${publicId}`);
   return response.data;
 };
 
 // ----------------------------------------------------------------------
 // [멤버십]
 // ----------------------------------------------------------------------
-export const joinQuest = async (questId: number) => {
-  const response = await api.post("/quest/join", { questId });
+export const joinQuest = async (publicId: string) => {
+  const response = await api.post("/quest/join", { publicId });
   return response.data;
 };
 
-export const leaveQuest = async (questId: number) => {
-  const response = await api.post("/quest/leave", { questId });
+export const leaveQuest = async (publicId: string) => {
+  const response = await api.post("/quest/leave", { publicId });
   return response.data;
 };
 
@@ -25,12 +25,12 @@ export const leaveQuest = async (questId: number) => {
 // [인증샷 CRUD]
 // ----------------------------------------------------------------------
 export const uploadVerification = async (
-  questId: number,
+  publicId: string,
   image: File | null | undefined,
   comment: string
 ) => {
   const formData = new FormData();
-  formData.append("QuestId", questId.toString());
+  formData.append("PublicId", publicId);
   formData.append("Comment", comment || "");
   if (image) {
     formData.append("Image", image);
@@ -44,14 +44,14 @@ export const uploadVerification = async (
 
 
 export const updateVerification = async (
-  questId: number,
+  publicId: string,
   verificationId: number,
   comment: string,
   image?: File | null,
   removeImage?: boolean
 ) => {
   const formData = new FormData();
-  formData.append("QuestId", questId.toString());
+  formData.append("PublicId", publicId.toString());
   formData.append("VerificationId", verificationId.toString());
   formData.append("Comment", comment);
   // Append image only when an actual File is provided (user selected new file)
@@ -70,9 +70,9 @@ export const updateVerification = async (
   return response.data;
 };
 
-export const deleteVerification = async (questId: number, verificationId: number) => {
+export const deleteVerification = async (publicId: string, verificationId: number) => {
   const response = await api.post("/quest/verify/delete", {
-    QuestId: questId,
+    PublicId: publicId,
     VerificationId: verificationId,
   });
   return response.data;

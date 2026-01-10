@@ -21,5 +21,7 @@ namespace QuestMateAPI.Application.DTOs.Quest
         public int MaxMemberCount { get; set; }
 
         public string? ImageUrl { get; set; }
+        // server generated public id (nanoid). service will set this before persisting.
+        public string? PublicId { get; set; }
     }
 }
