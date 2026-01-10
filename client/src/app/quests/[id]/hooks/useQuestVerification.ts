@@ -189,7 +189,7 @@ export const useQuestVerification = (
   // ----------------------------------------------------------------------
   const handleDelete = async (verifyId: number) => {
     if (!quest) return;
-    const ok = await showConfirm("정말 이 인증샷을 삭제하시겠습니까?");
+    const ok = await showConfirm("이 발자국을 삭제하시겠습니까?");
     if (!ok) return;
 
     setDeletingVerifyId(verifyId);
