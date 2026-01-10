@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { isAxiosError } from "axios";
-import showConfirm from "../../../../lib/showConfirm";
+// confirmation is handled inline in the feed UI now
 import { uploadVerification, updateVerification, deleteVerification } from "../api";
 import { QuestViewModel, VerificationViewModel } from "../types";
 
@@ -189,9 +189,7 @@ export const useQuestVerification = (
   // ----------------------------------------------------------------------
   const handleDelete = async (verifyId: number) => {
     if (!quest) return;
-    const ok = await showConfirm("이 발자국을 삭제하시겠습니까?");
-    if (!ok) return;
-
+    // deletion confirmation is performed in the UI; proceed to delete
     setDeletingVerifyId(verifyId);
 
     try {

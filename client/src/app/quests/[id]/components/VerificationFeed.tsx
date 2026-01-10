@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { VerificationViewModel } from "../types";
 import { useAuthStore } from "@/src/store/useAuthStore";
 import { getAvatarPath } from "@/src/lib/avatarIcons";
@@ -59,6 +59,20 @@ const VerificationItem = ({
   editingCommentInvalid,
 }: VerificationItemProps) => {
   const { src: protectedSrc } = useProtectedImage(v.fileId);
+  const [confirming, setConfirming] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!confirming) return;
+    const handler = (e: PointerEvent) => {
+      if (!wrapperRef.current) return;
+      if (!wrapperRef.current.contains(e.target as Node)) {
+        setConfirming(false);
+      }
+    };
+    document.addEventListener("pointerdown", handler);
+    return () => document.removeEventListener("pointerdown", handler);
+  }, [confirming]);
 
   const imageForDisplay = (() => {
     if (editingVerifyId === v.id) {
@@ -87,7 +101,7 @@ const VerificationItem = ({
         </div>
         {/* 수정/삭제 버튼 */}
         {isLoggedIn && v.isMine && editingVerifyId !== v.id && (
-          <div className="ml-auto flex items-center gap-2 h-8">
+          <div ref={wrapperRef} className="ml-auto flex items-center gap-2 h-8 relative">
             <button
               onClick={() => onStartEdit(v)}
               className="relative w-15 h-10 flex items-center justify-center transition active:scale-95 hover:brightness-110"
@@ -95,14 +109,40 @@ const VerificationItem = ({
             >
               <span className="text-[13px] font-bold text-[#fffdf2] drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">수정</span>
             </button>
+
+            { /* 삭제 버튼 */}
             <button
-              onClick={() => onDelete(v.id)}
-              disabled={deletingVerifyId === v.id}
-              className="relative w-15 h-10 flex items-center justify-center transition active:scale-95 hover:brightness-110 disabled:opacity-50 disabled:grayscale"
-              style={{ backgroundImage: "url('/button_delete_feed.png')", backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat' }}
-            >
-              <span className="text-[13px] font-bold text-[#fffdf2] drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">{deletingVerifyId === v.id ? "..." : "삭제"}</span>
+                onClick={() => setConfirming(true)}
+                disabled={deletingVerifyId === v.id}
+                className="relative w-15 h-10 flex items-center justify-center transition active:scale-95 hover:brightness-110 disabled:opacity-50 disabled:grayscale"
+                style={{ backgroundImage: "url('/button_delete_feed.png')", backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat' }}
+              >
+                <span className="text-[13px] font-bold text-[#fffdf2] drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">{deletingVerifyId === v.id ? "..." : "삭제"}</span>
             </button>
+
+            {/* Delete button or inline confirm */}
+            {confirming && (
+              <div className="absolute right-0 top-10 z-20 w-44 rounded-md bg-white border p-2 shadow-lg text-sm">
+                <div className="mb-2 text-center text-[#482e17]">삭제하시겠습니까?</div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      setConfirming(false);
+                      onDelete(v.id);
+                    }}
+                    className="flex-1 h-8 rounded bg-red-500 text-white text-sm"
+                  >
+                    확인
+                  </button>
+                  <button
+                    onClick={() => setConfirming(false)}
+                    className="flex-1 h-8 rounded bg-gray-200 text-sm"
+                  >
+                    취소
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
