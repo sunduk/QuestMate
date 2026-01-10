@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { isAxiosError } from "axios";
 import { joinQuest, leaveQuest } from "../api";
 import { QuestViewModel, QuestDetailDto } from "../types";
+import showConfirm from "@/src/lib/showConfirm";
 
 export const useQuestMembership = (quest: QuestViewModel | null, userId?: number) => {
   const router = useRouter();
@@ -21,7 +22,8 @@ export const useQuestMembership = (quest: QuestViewModel | null, userId?: number
         ? `${quest.entryFee} 골드가 차감됩니다. 참가하시겠습니까?`
         : "무료로 참가하시겠습니까?";
 
-    if (!window.confirm(confirmMsg)) return;
+    const ok = await showConfirm(confirmMsg);
+    if (!ok) return;
 
     setIsJoining(true);
 
@@ -53,17 +55,16 @@ export const useQuestMembership = (quest: QuestViewModel | null, userId?: number
     const isMyHost = myInfo?.isMe && myInfo?.isHost;
     const isLastMember = quest.participants.length === 1;
 
-    let confirmMsg = "정말 퀘스트를 포기하시겠습니까?\n(참가비는 환불되지 않습니다.)";
-
+    let confirmMsg = "";
     if (isMyHost) {
       if (!isLastMember) {
         confirmMsg = "방장이 탈퇴하면 다음 순서의 멤버에게 방장이 위임됩니다.\n정말 탈퇴하시겠습니까?";
       } else {
-        confirmMsg = "남은 멤버가 없어 퀘스트가 삭제됩니다.\n정말 삭제하시겠습니까?";
+        confirmMsg = "정말 노트를 삭제하시겠습니까?";
       }
     }
-
-    if (!window.confirm(confirmMsg)) return;
+    const ok = await showConfirm(confirmMsg);
+    if (!ok) return;
 
     setIsLeaving(true);
 
