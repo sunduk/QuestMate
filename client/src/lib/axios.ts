@@ -1,5 +1,6 @@
 // src/lib/axios.ts
 import axios from 'axios';
+import { useAuthStore } from '../store/useAuthStore';
 
 // baseURL을 상수로 추출하여 재사용 가능하도록 export
 export const baseURL = process.env.NEXT_PUBLIC_API_URL || 'https://localhost:7173/api';
@@ -21,7 +22,6 @@ api.interceptors.request.use(
     // Zustand store에서 토큰 가져오기
     // (서버 사이드 렌더링 시에는 실행되지 않도록 방어 코드)
     if (typeof window !== 'undefined') {
-        const { useAuthStore } = require('../store/useAuthStore');
         const token = useAuthStore.getState().token;
         if (token) {
           // 헤더에 토큰 자동 주입 (매번 넣을 필요 없어짐)
@@ -49,7 +49,6 @@ api.interceptors.response.use(
       
       if (typeof window !== 'undefined') {
         // Store에서 토큰 삭제 (persist 미들웨어가 localStorage 자동 처리)
-        const { useAuthStore } = require('../store/useAuthStore');
         useAuthStore.getState().logout();
         // window.location.href = '/login'; // 너무 팍 튀면 UX 안좋으니 선택사항
       }
