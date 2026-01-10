@@ -99,6 +99,7 @@ const VerificationItem = ({
         </div>
         <div className="flex flex-col">
           <span className="text-xs font-bold text-slate-800">{v.userName}</span>
+          <span className="text-xs text-slate-500">{v.createdAt}</span>
         </div>
         {/* 수정/삭제 버튼 */}
         {isLoggedIn && v.isMine && editingVerifyId !== v.id && (

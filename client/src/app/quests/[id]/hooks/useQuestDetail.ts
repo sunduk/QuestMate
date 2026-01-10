@@ -54,14 +54,23 @@ const mapDataToViewModel = (data: QuestDetailDto, myId?: number): QuestViewModel
         // when image is protected, client should call /files/verification/{id}
         fileId: v.id,
         comment: v.comment,
-        createdAt: new Date(dateStr).toLocaleString("ko-KR", {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        }),
+        createdAt: (() => {
+          const d = new Date(dateStr);
+          const now = new Date();
+          const diffSec = Math.floor((now.getTime() - d.getTime()) / 1000);
+
+          if (diffSec < 60) return "방금전";
+          if (diffSec < 3600) return `${Math.floor(diffSec / 60)}분 전`;
+          if (diffSec < 86400) return `${Math.floor(diffSec / 3600)}시간 전`;
+          if (diffSec < 2 * 86400) return "하루 전";
+
+          const yyyy = d.getFullYear();
+          const mm = String(d.getMonth() + 1).padStart(2, "0");
+          const dd = String(d.getDate()).padStart(2, "0");
+          const hh = String(d.getHours()).padStart(2, "0");
+          const min = String(d.getMinutes()).padStart(2, "0");
+          return `${yyyy}/${mm}/${dd} ${hh}:${min}`;
+        })(),
         avatarNumber: v.avatarNumber
       };
     }),
