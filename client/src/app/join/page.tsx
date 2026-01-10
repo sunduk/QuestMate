@@ -44,7 +44,6 @@ export default function JoinPage() {
 
       // 3. 성공 처리 (200 OK)
       localStorage.setItem("isLoggedIn", "true");
-      localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("userId", userId);
 
       console.log("회원가입 성공:", response.data);

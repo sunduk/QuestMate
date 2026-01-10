@@ -202,8 +202,8 @@ export default function SettingPage() {
   const handleLogout = async () => {
     // 로그아웃 처리
     try {
-      // 1. 로컬 스토리지에서 토큰 꺼내기
-      const token = localStorage.getItem("accessToken") || useAuthStore.getState().token;
+      // 1. 스토어에서 토큰 가져오기
+      const token = useAuthStore.getState().token;
 
       if (!token) {
         useAuthStore.getState().logout();
@@ -225,8 +225,7 @@ export default function SettingPage() {
     } catch (error) {
       console.error("로그아웃 실패:", error);
     } finally {
-      // 5. 로컬 스토리지 및 스토어 정리
-      localStorage.removeItem("accessToken");
+      // 5. 로컬 스토리지 및 스토어 정리 (token은 store.logout()이 자동 처리)
       localStorage.removeItem("userId");
       localStorage.removeItem("userExtraData");
       localStorage.setItem("isLoggedIn", "false");
@@ -243,17 +242,15 @@ export default function SettingPage() {
   // Also refresh when other parts of the app emit a `user:update` event,
   // when localStorage changes (other tabs), or when window gains focus.
   useEffect(() => {
-    // If there's no token in the app store and no accessToken in localStorage,
-    // the user is effectively logged out — skip calling the protected API.
-    const hasToken = !!token || (typeof window !== 'undefined' && !!localStorage.getItem('accessToken'));
-    if (!hasToken) return;
+    // If there's no token in the store, skip calling the protected API.
+    if (!token) return;
 
     fetchUserInfo();
 
     const onUserUpdate = () => fetchUserInfo();
     const onStorage = (e: StorageEvent) => {
-      if (e.key === 'auth-storage' || e.key === 'accessToken') {
-        const nowHasToken = !!useAuthStore.getState().token || (typeof window !== 'undefined' && !!localStorage.getItem('accessToken'));
+      if (e.key === 'auth-storage') {
+        const nowHasToken = !!useAuthStore.getState().token;
         if (nowHasToken) fetchUserInfo();
       }
     };

@@ -102,8 +102,8 @@ export default function TopBar() {
 
     // 로그아웃 처리
     try {
-      // 1. 로컬 스토리지에서 토큰 꺼내기
-      const token = localStorage.getItem("accessToken") || storeToken;
+      // 1. 스토어에서 토큰 가져오기
+      const token = storeToken;
 
       if (!token) {
         storeLogout();
@@ -125,8 +125,7 @@ export default function TopBar() {
     } catch (error) {
       console.error("로그아웃 실패:", error);
     } finally {
-      // 5. 로컬 스토리지 및 스토어 정리
-      localStorage.removeItem("accessToken");
+      // 5. 로컬 스토리지 및 스토어 정리 (token은 store.logout()이 자동 처리)
       localStorage.removeItem("userId");
       localStorage.removeItem("userExtraData");
       localStorage.setItem("isLoggedIn", "false");

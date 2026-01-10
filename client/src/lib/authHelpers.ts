@@ -23,9 +23,8 @@ export async function handleLoginSuccess(
     const parsedAvatar = typeof avatarNumber === 'string' ? parseInt(avatarNumber, 10) : avatarNumber;
     setAuth({ id: userId as number, email: "", nickname: nickname ?? "", avatarNumber: parsedAvatar as number | undefined }, accessToken as string);
 
-    // persist same keys as other flows
+    // persist userId and login flag (token is auto-persisted by useAuthStore)
     try {
-      localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("userId", userId.toString());
       localStorage.setItem("isLoggedIn", "true");
       if (parsedAvatar !== undefined && parsedAvatar !== null) localStorage.setItem("avatarNumber", parsedAvatar.toString());

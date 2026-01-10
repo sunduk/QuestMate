@@ -81,12 +81,7 @@ export default function QuestListPage() {
       setIsLoading(true);
       
       // 1. API 요청 (GET /api/quest)
-      const accessToken = localStorage.getItem("accessToken");
-      if (accessToken === null) {
-        //console.log("토큰 없음");
-        return;
-      }
-
+      // api interceptor가 자동으로 토큰을 헤더에 추가합니다
       const response = await api.get("/quest/list");
       const { success, items } = response.data; // QuestListResultDto
 

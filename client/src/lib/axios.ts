@@ -18,10 +18,11 @@ const api = axios.create({
 // "패킷 보내기 직전"에 가로채서 공통 헤더를 붙입니다.
 api.interceptors.request.use(
   (config) => {
-    // 브라우저 저장소에서 토큰 꺼내기
-    // (서버 사이드 렌더링 시에는 실행되지 않도록 방어 코드 필요하지만, 일단 Client 위주로)
+    // Zustand store에서 토큰 가져오기
+    // (서버 사이드 렌더링 시에는 실행되지 않도록 방어 코드)
     if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('accessToken');
+        const { useAuthStore } = require('../store/useAuthStore');
+        const token = useAuthStore.getState().token;
         if (token) {
           // 헤더에 토큰 자동 주입 (매번 넣을 필요 없어짐)
           config.headers['Authorization'] = `Bearer ${token}`;
@@ -47,8 +48,9 @@ api.interceptors.response.use(
       //console.warn("세션이 만료되었습니다. 로그아웃 처리합니다.");
       
       if (typeof window !== 'undefined') {
-        // 토큰 삭제 및 로그인 페이지로 강제 이동
-        localStorage.removeItem('accessToken');
+        // Store에서 토큰 삭제 (persist 미들웨어가 localStorage 자동 처리)
+        const { useAuthStore } = require('../store/useAuthStore');
+        useAuthStore.getState().logout();
         // window.location.href = '/login'; // 너무 팍 튀면 UX 안좋으니 선택사항
       }
     }
