@@ -473,8 +473,7 @@ namespace QuestMateAPI.Infrastructure.Repositories
                 await conn.ExecuteAsync(@"
                     UPDATE quest_verification
                     SET comment = COALESCE(@Comment, comment),
-                        image_url = @ImageUrl,
-                        created_at = UTC_TIMESTAMP()
+                        image_url = @ImageUrl
                     WHERE id = @Id",
                     new { Id = verificationId, Comment = comment, ImageUrl = imageUrl }, transaction: trans);
 
