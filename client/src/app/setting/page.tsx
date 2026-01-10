@@ -485,7 +485,7 @@ function SettingItem({
               <div className="py-2 pl-3 bg-[#fffdf7] rounded-lg shadow-inner" style={{ whiteSpace: 'pre-line' }}>
                 <div className="flex items-center gap-2 justify-between">
                   <div className="flex items-center gap-2">
-                    <Image src="/icon_email.png" alt="Email Icon" width={36} height={36} className="w-9" />
+                    <Image src="/icon_email.png" alt="Email Icon" width={30} height={30} />
                     <a href={`mailto:${email}`} className="text-[#5b3a1b] underline break-words text-base">{email}</a>
                   </div>
 
