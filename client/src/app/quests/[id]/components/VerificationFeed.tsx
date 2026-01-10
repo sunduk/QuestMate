@@ -129,13 +129,13 @@ const VerificationItem = ({
       {/* confirm overlay: covers whole feed item */}
       {confirming && (
         <div className="absolute inset-0 z-30 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/70" />
+          <div className="absolute inset-0 bg-black/60" />
           <div
             className="relative z-40 w-11/12 h-3/4 max-w-md rounded-md p-4 text-xl mx-auto"
             // style={{ backgroundImage: "url('/stamp.png')", backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }}
           >
-            <div className="mt-13 mb-2 font-bold text-center text-2xl text-[#fafafa]">
-              <span className="text-red-500">삭제</span> 하시겠습니까?
+            <div className="mt-13 mb-2 font-bold text-center text-2xl text-[#fafafa] drop-shadow-[0_2px_2px_rgba(0,0,0,0.5)]">
+              <span className="text-[#f72b12]">삭제</span> 하시겠습니까?
             </div>
             <div className="flex gap-2">
               <button
@@ -143,13 +143,15 @@ const VerificationItem = ({
                   setConfirming(false);
                   onDelete(v.id);
                 }}
-                className="flex-1 h-10 rounded-full border border-gray-300 bg-[#d32830] text-base text-[#ffffff] font-medium overflow-hidden bg-cover bg-center bg-no-repeat bg-clip-padding transition active:scale-95"
+                className="flex-1 h-10 rounded-full text-base text-[#ffffff] font-medium overflow-hidden bg-cover bg-center bg-no-repeat bg-clip-padding transition active:scale-95"
+                style={{ backgroundImage: "url('/button_bg_red.png')" }}
               >
                 확인
               </button>
               <button
                 onClick={() => setConfirming(false)}
-                className="flex-1 h-10 rounded-full border border-gray-300 bg-gray-400 text-base text-[#ffffff] font-medium overflow-hidden bg-cover bg-center bg-no-repeat bg-clip-padding transition active:scale-95"
+                className="flex-1 h-10 rounded-full text-base text-[#ffffff] font-medium overflow-hidden bg-cover bg-center bg-no-repeat bg-clip-padding transition active:scale-95"
+                style={{ backgroundImage: "url('/button_bg_gray.png')" }}
               >
                 취소
               </button>
@@ -177,7 +179,7 @@ const VerificationItem = ({
 
         
 
-        {editingVerifyId === v.id && (
+        {editingVerifyId === v.id && (imageForDisplay) && (
           <button
             onClick={onRemoveEditImage}
             className="absolute top-2 right-2 w-22 h-10 flex items-center justify-center transition active:scale-95 hover:brightness-110"
@@ -200,10 +202,10 @@ const VerificationItem = ({
               };
               fileInput.click();
             }}
-            className="absolute bottom-2 right-2 w-15 h-9 flex items-center justify-center transition active:scale-95 hover:brightness-110"
+            className="absolute bottom-2 right-2 w-23 h-10 flex items-center justify-center transition active:scale-95 hover:brightness-110"
             style={{ backgroundImage: "url('/button_edit_feed.png')", backgroundSize: '100% 100%', backgroundRepeat: 'no-repeat' }}
           >
-            <span className="text-[13px] font-bold text-[#fffdf2] drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">변경</span>
+            <span className="text-[13px] font-bold text-[#fffdf2] drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">이미지 변경</span>
           </button>
         )}
       </div>
