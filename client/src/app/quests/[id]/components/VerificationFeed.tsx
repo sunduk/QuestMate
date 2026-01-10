@@ -83,7 +83,8 @@ const VerificationItem = ({
 
   return (
     <div
-      className={`overflow-hidden rounded-2xl border bg-white shadow-sm transition-all ${
+      ref={wrapperRef}
+      className={`relative overflow-hidden rounded-2xl border bg-white shadow-sm transition-all ${
         editingVerifyId === v.id ? "border-yellow-600 ring-4 ring-yellow-500/40" : "border-[#efceb6]"
       }`}
     >
@@ -101,7 +102,7 @@ const VerificationItem = ({
         </div>
         {/* 수정/삭제 버튼 */}
         {isLoggedIn && v.isMine && editingVerifyId !== v.id && (
-          <div ref={wrapperRef} className="ml-auto flex items-center gap-2 h-8 relative">
+          <div className="ml-auto flex items-center gap-2 h-8">
             <button
               onClick={() => onStartEdit(v)}
               className="relative w-15 h-10 flex items-center justify-center transition active:scale-95 hover:brightness-110"
@@ -120,29 +121,7 @@ const VerificationItem = ({
                 <span className="text-[13px] font-bold text-[#fffdf2] drop-shadow-[0_1px_1px_rgba(0,0,0,0.3)]">{deletingVerifyId === v.id ? "..." : "삭제"}</span>
             </button>
 
-            {/* Delete button or inline confirm */}
-            {confirming && (
-              <div className="absolute right-0 top-10 z-20 w-44 rounded-md bg-white border p-2 shadow-lg text-sm">
-                <div className="mb-2 text-center text-[#482e17]">삭제하시겠습니까?</div>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      setConfirming(false);
-                      onDelete(v.id);
-                    }}
-                    className="flex-1 h-8 rounded bg-red-500 text-white text-sm"
-                  >
-                    확인
-                  </button>
-                  <button
-                    onClick={() => setConfirming(false)}
-                    className="flex-1 h-8 rounded bg-gray-200 text-sm"
-                  >
-                    취소
-                  </button>
-                </div>
-              </div>
-            )}
+            {/* Delete button (popup rendered over image area) */}
           </div>
         )}
       </div>
@@ -162,6 +141,36 @@ const VerificationItem = ({
               (e.target as HTMLImageElement).src = "https://via.placeholder.com/400x225?text=Image+Not+Found";
             }}
           />
+        )}
+
+        {/* confirm overlay: match image area size and position */}
+        {confirming && (
+          <div className="absolute inset-0 z-30 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/30" />
+            <div
+              className="relative z-40 w-11/12 max-w-md rounded-md p-4 text-xl"
+              // style={{ backgroundImage: "url('/stamp.png')", backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }}
+            >
+              <div className="mb-2 text-center text-[#482e17]">삭제하시겠습니까?</div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    setConfirming(false);
+                    onDelete(v.id);
+                  }}
+                  className="flex-1 h-10 rounded bg-red-500 text-white text-sm"
+                >
+                  확인
+                </button>
+                <button
+                  onClick={() => setConfirming(false)}
+                  className="flex-1 h-10 rounded bg-gray-200 text-sm"
+                >
+                  취소
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         {editingVerifyId === v.id && (
