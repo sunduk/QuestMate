@@ -126,6 +126,38 @@ const VerificationItem = ({
         )}
       </div>
 
+      {/* confirm overlay: covers whole feed item */}
+      {confirming && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/70" />
+          <div
+            className="relative z-40 w-11/12 h-3/4 max-w-md rounded-md p-4 text-xl mx-auto"
+            // style={{ backgroundImage: "url('/stamp.png')", backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }}
+          >
+            <div className="mt-13 mb-2 font-bold text-center text-2xl text-[#fafafa]">
+              <span className="text-red-500">삭제</span> 하시겠습니까?
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setConfirming(false);
+                  onDelete(v.id);
+                }}
+                className="flex-1 h-10 rounded-full border border-gray-300 bg-[#d32830] text-base text-[#ffffff] font-medium overflow-hidden bg-cover bg-center bg-no-repeat bg-clip-padding transition active:scale-95"
+              >
+                확인
+              </button>
+              <button
+                onClick={() => setConfirming(false)}
+                className="flex-1 h-10 rounded-full border border-gray-300 bg-gray-400 text-base text-[#ffffff] font-medium overflow-hidden bg-cover bg-center bg-no-repeat bg-clip-padding transition active:scale-95"
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 인증 이미지 */}
       <div className="relative aspect-video w-full bg-gray-100">
         {(editingVerifyId === v.id && editingRemovedImage) || !(imageForDisplay) ? (
@@ -143,35 +175,7 @@ const VerificationItem = ({
           />
         )}
 
-        {/* confirm overlay: match image area size and position */}
-        {confirming && (
-          <div className="absolute inset-0 z-30 flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/30" />
-            <div
-              className="relative z-40 w-11/12 max-w-md rounded-md p-4 text-xl"
-              // style={{ backgroundImage: "url('/stamp.png')", backgroundSize: 'contain', backgroundRepeat: 'no-repeat', backgroundPosition: 'center' }}
-            >
-              <div className="mb-2 text-center text-[#482e17]">삭제하시겠습니까?</div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => {
-                    setConfirming(false);
-                    onDelete(v.id);
-                  }}
-                  className="flex-1 h-10 rounded bg-red-500 text-white text-sm"
-                >
-                  확인
-                </button>
-                <button
-                  onClick={() => setConfirming(false)}
-                  className="flex-1 h-10 rounded bg-gray-200 text-sm"
-                >
-                  취소
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        
 
         {editingVerifyId === v.id && (
           <button
