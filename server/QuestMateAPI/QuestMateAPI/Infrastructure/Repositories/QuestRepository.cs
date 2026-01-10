@@ -38,7 +38,7 @@ namespace QuestMateAPI.Infrastructure.Repositories
                 INSERT INTO Quest 
                 (public_id, title, category, target_count, duration_days, entry_fee, max_member_count, image_url, host_user_id, status, current_member_count, created_at, updated_at)
                 VALUES 
-                (@PublicId, @Title, @Category, @TargetCount, @DurationDays, @EntryFee, @MaxMemberCount, @ImageUrl, @HostUserId, 0, 1, UTC_TIMESTAMP(), UTC_TIMESTAMP());
+                (@PublicId, @Title, @Category, @TargetCount, @DurationDays, @EntryFee, @MaxMemberCount, @ImageUrl, @HostUserId, 0, 1, @CreatedAt, @UpdatedAt);
                 
                 SELECT LAST_INSERT_ID();";
 
@@ -53,7 +53,9 @@ namespace QuestMateAPI.Infrastructure.Repositories
                     dto.EntryFee,
                     dto.MaxMemberCount,
                     dto.ImageUrl,
-                    HostUserId = hostUserId
+                    HostUserId = hostUserId,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
                 }, transaction: trans);
 
                 // B. QuestMember 테이블 Insert (방장을 멤버로 자동 추가)
@@ -61,12 +63,13 @@ namespace QuestMateAPI.Infrastructure.Repositories
                 INSERT INTO QuestMember 
                 (quest_id, user_id, is_host, is_success, joined_at)
                 VALUES 
-                (@QuestId, @UserId, 1, 0, UTC_TIMESTAMP());";
+                (@QuestId, @UserId, 1, 0, @JoinedAt);";
 
                 await conn.ExecuteAsync(sqlMember, new
                 {
                     QuestId = questId,
-                    UserId = hostUserId
+                    UserId = hostUserId,
+                    JoinedAt = DateTime.UtcNow
                 }, transaction: trans);
 
                 // C. 커밋
@@ -213,8 +216,8 @@ namespace QuestMateAPI.Infrastructure.Repositories
                 // 4. 멤버 추가
                 await conn.ExecuteAsync(@"
             INSERT INTO QuestMember (quest_id, user_id, is_host, is_success, joined_at)
-            VALUES (@QId, @UId, 0, 0, UTC_TIMESTAMP())",
-                    new { QId = questId, UId = userId }, transaction: trans);
+            VALUES (@QId, @UId, 0, 0, @JoinedAt)",
+                    new { QId = questId, UId = userId, JoinedAt = DateTime.UtcNow }, transaction: trans);
 
                 // 5. 방 인원수 +1 증가
                 await conn.ExecuteAsync(@"
@@ -316,9 +319,9 @@ namespace QuestMateAPI.Infrastructure.Repositories
             {
                 // 1. 인증 로그 기록 (Insert)
                 await conn.ExecuteAsync(@"
-            INSERT INTO quest_verification (quest_id, user_id, image_url, comment, status, created_at)
-            VALUES (@QId, @UId, @ImgUrl, @Comment, 1, UTC_TIMESTAMP())", // MVP니까 일단 자동 승인(1) 처리
-                    new { QId = questId, UId = userId, ImgUrl = imageUrl, Comment = comment },
+            INSERT INTO quest_verification (quest_id, user_id, image_url, comment, status, created_at, updated_at)
+            VALUES (@QId, @UId, @ImgUrl, @Comment, 1, @CreatedAt, @UpdatedAt)", // MVP니까 일단 자동 승인(1) 처리
+                    new { QId = questId, UId = userId, ImgUrl = imageUrl, Comment = comment, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
                     transaction: trans);
 
                 // 2. 내 진행도 증가 (Update)
@@ -473,9 +476,10 @@ namespace QuestMateAPI.Infrastructure.Repositories
                 await conn.ExecuteAsync(@"
                     UPDATE quest_verification
                     SET comment = COALESCE(@Comment, comment),
-                        image_url = @ImageUrl
+                        image_url = @ImageUrl,
+                        updated_at = @UpdatedAt
                     WHERE id = @Id",
-                    new { Id = verificationId, Comment = comment, ImageUrl = imageUrl }, transaction: trans);
+                    new { Id = verificationId, Comment = comment, ImageUrl = imageUrl, UpdatedAt = DateTime.UtcNow }, transaction: trans);
 
                 await trans.CommitAsync();
                 return null; // 성공

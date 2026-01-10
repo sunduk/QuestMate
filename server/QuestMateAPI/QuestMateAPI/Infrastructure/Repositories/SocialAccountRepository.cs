@@ -51,10 +51,10 @@ namespace QuestMateAPI.Infrastructure.Repositories
 
             var sql = @"
                 INSERT INTO User (reg_date, login_date, avatar_number, nickname) 
-                VALUES (UTC_TIMESTAMP(), UTC_TIMESTAMP(), @AvatarNumber, @Nickname);
+                VALUES (@Now, @Now, @AvatarNumber, @Nickname);
                 SELECT LAST_INSERT_ID();";
 
-            var id = await conn.ExecuteScalarAsync<long>(sql, new { AvatarNumber = avatarNumber, Nickname = nickname });
+            var id = await conn.ExecuteScalarAsync<long>(sql, new { Now = DateTime.UtcNow, AvatarNumber = avatarNumber, Nickname = nickname });
             return (id, nickname);
         }
 
@@ -65,7 +65,7 @@ namespace QuestMateAPI.Infrastructure.Repositories
             var sql = @"
                 INSERT INTO social_account 
                 (user_id, platform, platform_user_id, access_token, refresh_token, reg_date, login_date) 
-                VALUES (@UserId, @Platform, @PlatformUserId, @AccessToken, @RefreshToken, UTC_TIMESTAMP(), UTC_TIMESTAMP());
+                VALUES (@UserId, @Platform, @PlatformUserId, @AccessToken, @RefreshToken, @Now, @Now);
                 SELECT LAST_INSERT_ID();";
 
             return await conn.ExecuteScalarAsync<long>(sql, new
@@ -74,7 +74,8 @@ namespace QuestMateAPI.Infrastructure.Repositories
                 Platform = platform,
                 PlatformUserId = platformUserId,
                 AccessToken = accessToken,
-                RefreshToken = refreshToken
+                RefreshToken = refreshToken,
+                Now = DateTime.UtcNow
             });
         }
 
@@ -86,14 +87,15 @@ namespace QuestMateAPI.Infrastructure.Repositories
                 UPDATE social_account 
                 SET access_token = @AccessToken, 
                     refresh_token = @RefreshToken, 
-                    login_date = UTC_TIMESTAMP()
+                    login_date = @Now
                 WHERE platform_user_id = @PlatformUserId";
 
             await conn.ExecuteAsync(sql, new
             {
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
-                PlatformUserId = platformUserId
+                PlatformUserId = platformUserId,
+                Now = DateTime.UtcNow
             });
         }
 
@@ -103,10 +105,10 @@ namespace QuestMateAPI.Infrastructure.Repositories
 
             var sql = @"
                 UPDATE User 
-                SET login_date = UTC_TIMESTAMP()
+                SET login_date = @Now
                 WHERE id = @UserId";
 
-            await conn.ExecuteAsync(sql, new { UserId = accountUserId });
+            await conn.ExecuteAsync(sql, new { UserId = accountUserId, Now = DateTime.UtcNow });
         }
 
         public async Task UpdateAccountNicknameAsync(long accountUserId, string nickname)
