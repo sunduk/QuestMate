@@ -220,6 +220,21 @@ namespace QuestMateAPI.Application.Services
         {
             try
             {
+                // 1. get verification to find stored image path (if any)
+                var verification = await _repository.GetVerificationByIdAsync(dto.VerificationId);
+                if (verification is not null && verification.QuestId == questId && verification.UserId == userId && !string.IsNullOrEmpty(verification.ImageUrl))
+                {
+                    // delete file from private storage (best-effort)
+                    try
+                    {
+                        await _fileStorage.DeleteAsync(verification.ImageUrl);
+                    }
+                    catch
+                    {
+                        // ignore file deletion errors - proceed to delete DB record
+                    }
+                }
+
                 string error = await _repository.DeleteVerificationAsync(questId, dto.VerificationId, userId);
 
                 if (error != null)
