@@ -160,10 +160,44 @@ namespace QuestMateAPI.Application.Services
 
         public async Task<QuestDetailResultDto> LeaveQuestAsync(long questId, long userId)
         {
-            string error = await _repository.LeaveQuestAsync(questId, userId);
-            if (error != null)
+            try
             {
-                return new QuestDetailResultDto { Success = false, Error = error };
+                // If the leaving user is the host, delete all verification images for the quest.
+                // Otherwise, delete only the leaving user's verification images.
+                var questDetail = await _repository.GetQuestDetailAsync(questId, userId);
+                bool isHost = false;
+                if (questDetail != null)
+                {
+                    isHost = questDetail.Participants.Any(p => p.UserId == userId && p.IsHost);
+                }
+
+                var verifications = await _repository.GetQuestVerificationsAsync(questId);
+                foreach (var v in verifications)
+                {
+                    if (string.IsNullOrEmpty(v.ImageUrl)) continue;
+
+                    if (isHost || v.UserId == userId)
+                    {
+                        try
+                        {
+                            await _fileStorage.DeleteAsync(v.ImageUrl);
+                        }
+                        catch
+                        {
+                            // ignore deletion errors
+                        }
+                    }
+                }
+
+                string error = await _repository.LeaveQuestAsync(questId, userId);
+                if (error != null)
+                {
+                    return new QuestDetailResultDto { Success = false, Error = error };
+                }
+            }
+            catch (Exception ex)
+            {
+                return new QuestDetailResultDto { Success = false, Error = "INTERNAL_SERVER_ERROR" };
             }
 
             // 2. [변경] 성공 시, 상세 정보를 조회하지 않고 빈 성공 응답만 보냄
