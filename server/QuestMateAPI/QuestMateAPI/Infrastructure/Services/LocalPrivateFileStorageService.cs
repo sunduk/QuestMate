@@ -28,14 +28,14 @@ namespace QuestMateAPI.Infrastructure.Services
             if (!Directory.Exists(_rootPath)) Directory.CreateDirectory(_rootPath);
         }
 
-        public async Task<string> SaveAsync(IFormFile file, string subfolder)
+        public async Task<string> SaveAsync(IFormFile file, long userId, string subfolder)
         {
             if (file == null) throw new ArgumentNullException(nameof(file));
 
             var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
             if (ext != ".jpg" && ext != ".png" && ext != ".jpeg") throw new InvalidOperationException("INVALID_IMAGE_TYPE");
 
-            string datePath = DateTime.UtcNow.ToString("yyyyMMdd");
+            string datePath = userId.ToString();
             string folder = string.IsNullOrEmpty(subfolder) ? datePath : Path.Combine(subfolder, datePath);
             string fullFolder = Path.Combine(_rootPath, folder);
             if (!Directory.Exists(fullFolder)) Directory.CreateDirectory(fullFolder);

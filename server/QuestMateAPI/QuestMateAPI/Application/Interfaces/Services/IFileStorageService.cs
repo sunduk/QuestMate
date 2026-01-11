@@ -6,7 +6,7 @@ namespace QuestMateAPI.Application.Interfaces.Services
     public interface IFileStorageService
     {
         // Save file under optional subfolder (e.g. "verifications") and return stored relative path
-        Task<string> SaveAsync(IFormFile file, string subfolder);
+        Task<string> SaveAsync(IFormFile file, long userId, string subfolder);
 
         // Delete stored file by returned stored path
         Task DeleteAsync(string storedPath);

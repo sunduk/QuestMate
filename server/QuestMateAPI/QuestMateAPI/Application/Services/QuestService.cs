@@ -222,7 +222,7 @@ namespace QuestMateAPI.Application.Services
                     try
                     {
                         // let fileStorage validate extension and save
-                        var stored = await _fileStorage.SaveAsync(dto.Image, "verifications");
+                        var stored = await _fileStorage.SaveAsync(dto.Image, userId, "verifications");
                         // store the relative stored path in DB (not a public URL)
                         imageUrl = stored; // now this is internal path like "verifications/20260101/guid.jpg"
                     }
@@ -311,7 +311,7 @@ namespace QuestMateAPI.Application.Services
                         try
                         {
                             // delegate saving to file storage implementation
-                            var stored = await _fileStorage.SaveAsync(dto.Image, "verifications");
+                            var stored = await _fileStorage.SaveAsync(dto.Image, userId, "verifications");
                             imageUrl = stored; // internal stored relative path
                         }
                         catch (InvalidOperationException)
