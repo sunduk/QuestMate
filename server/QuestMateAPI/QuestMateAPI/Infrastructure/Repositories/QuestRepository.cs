@@ -293,6 +293,11 @@ namespace QuestMateAPI.Infrastructure.Repositories
                         // B. 폭파 (남은 사람이 없음) -> 퀘스트 삭제 or 실패 처리
                         // 여기서는 '모집중' 상태라면 삭제, '진행중'이라면 실패 처리 등이 필요하지만
                         // MVP 단계에선 일단 Quest 테이블에서 삭제(Soft Delete 추천하지만 일단 Hard Delete)
+                        // 관련된 인증샷 레코드도 함께 삭제
+                        await conn.ExecuteAsync(
+                            "DELETE FROM quest_verification WHERE quest_id = @QId",
+                            new { QId = questId }, transaction: trans);
+
                         await conn.ExecuteAsync(
                             "DELETE FROM Quest WHERE id = @QId",
                             new { QId = questId }, transaction: trans);
